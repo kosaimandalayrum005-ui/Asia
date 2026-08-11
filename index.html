@@ -29,6 +29,18 @@ await window.supabase.auth.setSession({
 access_token: accessToken,
 refresh_token: refreshToken,
 });
+const { data: { user } } = await window.supabase.auth.getUser();
+if (user) {
+await window.supabase
+.from('profiles')
+.upsert([{ id: user.id, email: user.email }], { onConflict: ['id'] });
+
+// (ဒီနေရာကနေ HTML ထဲက နေရာကို တကယ့် Gmail နဲ့ အစားထိုးပါမယ်)
+const emailElement = document.getElementById('nav-email-display');
+if (emailElement) {
+emailElement.textContent = user.email; // user ရဲ့ တကယ့် Gmail လိပ်စာကို ထည့်ပေးမယ်
+}
+}
 window.history.replaceState({}, document.title, window.location.pathname);
 if (typeof switchPage === 'function') {
 switchPage('dashboard-page');
