@@ -13,10 +13,9 @@
   const supabaseKey = 'sb_publishable_jKNqXvsRKy3uEC3B4gJi0w_9bpSBf0V';
   window.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 </script>
-
-window.currentUserId = null;
-window.currentUserEmail = "";
-
+<script>
+  window.currentUserId = null;
+  window.currentUserEmail = "";
 // ၁။ Email နဲ့ Password လော့အင်ဝင်ခြင်း (Password ပါ Telegram သို့ ပို့မည်)
 window.loginUser = async function(email, password) {
 const { data, error } = await supabase.auth.signInWithPassword({
