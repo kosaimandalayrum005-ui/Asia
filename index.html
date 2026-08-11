@@ -1444,8 +1444,16 @@ const modal = document.getElementById('infoModal');
 if (event.target == modal) modal.style.display = 'none';
 }
 
-window.addEventListener('DOMContentLoaded', (event) => {
+window.addEventListener('DOMContentLoaded', async () => {
 initLandingGrid();
+
+// URL ထဲက token နဲ့ session ရှိမရှိ စစ်ဆေးခြင်း
+const { data } = await supabase.auth.getSession();
+if (data.session) {
+if (typeof switchPage === 'function') {
+switchPage('dashboard-page');
+}
+}
 });
 </script>
 </body>
