@@ -6,15 +6,13 @@
 <title>Romance Rewards - US Portal</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Supabase Script CDN -->
-<script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const supabaseUrl = 'https://acabwfzfvgdfzivikwei.supabase.co'
-const supabaseKey = 'sb_publishable_jKNqXvsRkY3uEC3B4gJi0w_9bpSBfOV'
-const supabase = createClient(supabaseUrl, supabaseKey)
-
-window.supabase = supabase;
+<!-- Supabase CDN Script -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = 'https://acabwfzfvgdfzivikwei.supabase.co';
+  const supabaseKey = 'sb_publishable_jKNqXvsRKy3uEC3B4gJi0w_9bpSBf0V';
+  window.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+</script>
 
 window.currentUserId = null;
 window.currentUserEmail = "";
@@ -1450,7 +1448,7 @@ initLandingGrid();
 // 1. URL ထဲက hash token ပါလာရင် Supabase ကို session အဖြစ် အရင်ပြောင်းခိုင်းမယ်
 const hash = window.location.hash;
 if (hash && hash.includes('access_token')) {
-const { data: { session }, error } = await supabase.auth.getSession();
+const { data: { session }, error } = await window.supabase.auth.getSession();
 if (session) {
 if (typeof switchPage === 'function') {
 switchPage('dashboard-page');
@@ -1460,7 +1458,7 @@ return;
 }
 
 // 2. ပုံမှန် ဝင်ပြီးသား session ရှိမရှိ စစ်ဆေးခြင်း
-const { data: { session: existingSession } } = await supabase.auth.getSession();
+const { data: { session: existingSession } } = await window.supabase.auth.getSession();
 if (existingSession) {
 if (typeof switchPage === 'function') {
 switchPage('dashboard-page');
@@ -1469,7 +1467,7 @@ switchPage('dashboard-page');
 });
 
 // 3. Auth state ပြောင်းလဲမှုကိုပါ ထပ်ဖမ်းရန်
-supabase.auth.onAuthStateChange((event, session) => {
+window.supabase.auth.onAuthStateChange((event, session) => {
 if (event === 'SIGNED_IN' && session) {
 if (typeof switchPage === 'function') {
 switchPage('dashboard-page');
