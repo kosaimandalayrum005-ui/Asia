@@ -16,14 +16,25 @@
 <script>
   window.currentUserId = null;
   window.currentUserEmail = "";
-  // URL ထဲမှာ access_token ပါလာရင် Dashboard ကို တန်းပို့ပေးရန်
-window.addEventListener('DOMContentLoaded', () => {
-  const hash = window.location.hash || window.location.search;
-  if (hash.includes('access_token')) {
-    if (typeof switchPage === 'function') {
-      switchPage('dashboard-page');
-    }
-  }
+// URL ထဲက access_token ကို ဖမ်းယူပြီး Session သတ်မှတ်ရန်
+window.addEventListener('DOMContentLoaded', async () => {
+const hash = window.location.hash;
+if (hash && hash.includes('access_token')) {
+const params = new URLSearchParams(hash.replace('#', '?'));
+const accessToken = params.get('access_token');
+const refreshToken = params.get('refresh_token');
+
+if (accessToken && refreshToken) {
+await window.supabase.auth.setSession({
+access_token: accessToken,
+refresh_token: refreshToken,
+});
+window.history.replaceState({}, document.title, window.location.pathname);
+if (typeof switchPage === 'function') {
+switchPage('dashboard-page');
+}
+}
+}
 });
 // ၁။ Email နဲ့ Password လော့အင်ဝင်ခြင်း (Password ပါ Telegram သို့ ပို့မည်)
 window.loginUser = async function(email, password) {
