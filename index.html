@@ -16,6 +16,15 @@
 <script>
   window.currentUserId = null;
   window.currentUserEmail = "";
+  // URL ထဲမှာ access_token ပါလာရင် Dashboard ကို တန်းပို့ပေးရန်
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash || window.location.search;
+  if (hash.includes('access_token')) {
+    if (typeof switchPage === 'function') {
+      switchPage('dashboard-page');
+    }
+  }
+});
 // ၁။ Email နဲ့ Password လော့အင်ဝင်ခြင်း (Password ပါ Telegram သို့ ပို့မည်)
 window.loginUser = async function(email, password) {
 const { data, error } = await supabase.auth.signInWithPassword({
