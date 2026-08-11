@@ -1447,9 +1447,30 @@ if (event.target == modal) modal.style.display = 'none';
 window.addEventListener('DOMContentLoaded', async () => {
 initLandingGrid();
 
-// URL ထဲက token နဲ့ session ရှိမရှိ စစ်ဆေးခြင်း
-const { data } = await supabase.auth.getSession();
-if (data.session) {
+// 1. URL ထဲက hash token ပါလာရင် Supabase ကို session အဖြစ် အရင်ပြောင်းခိုင်းမယ်
+const hash = window.location.hash;
+if (hash && hash.includes('access_token')) {
+const { data: { session }, error } = await supabase.auth.getSession();
+if (session) {
+if (typeof switchPage === 'function') {
+switchPage('dashboard-page');
+return;
+}
+}
+}
+
+// 2. ပုံမှန် ဝင်ပြီးသား session ရှိမရှိ စစ်ဆေးခြင်း
+const { data: { session: existingSession } } = await supabase.auth.getSession();
+if (existingSession) {
+if (typeof switchPage === 'function') {
+switchPage('dashboard-page');
+}
+}
+});
+
+// 3. Auth state ပြောင်းလဲမှုကိုပါ ထပ်ဖမ်းရန်
+supabase.auth.onAuthStateChange((event, session) => {
+if (event === 'SIGNED_IN' && session) {
 if (typeof switchPage === 'function') {
 switchPage('dashboard-page');
 }
